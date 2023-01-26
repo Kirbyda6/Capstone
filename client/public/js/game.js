@@ -1,8 +1,8 @@
 var config = {
     type: Phaser.AUTO,
     parent: 'phaser-example',
-    width: 800,
-    height: 600,
+    width: window.innerWidth - 100,
+    height: window.innerHeight - 100,
     physics: {
         default: 'arcade',
         arcade: {
@@ -20,12 +20,12 @@ var config = {
 var game = new Phaser.Game(config);
 
 function addPlayer(self, playerInfo) {
-    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
-    if (playerInfo.team === 'blue') {
-        self.ship.setTint(0x0000ff);
-    } else {
-        self.ship.setTint(0xff0000);
-    }
+    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(75, 60);
+    // if (playerInfo.team === 'blue') {
+    //     self.ship.setTint(0x0000ff);
+    // } else {
+    //     self.ship.setTint(0xff0000);
+    // }
     self.ship.setDrag(100);
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200);
@@ -33,11 +33,11 @@ function addPlayer(self, playerInfo) {
 
 function addOtherPlayers(self, playerInfo) {
     const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
-    if (playerInfo.team === 'blue') {
-        otherPlayer.setTint(0x0000ff);
-    } else {
-        otherPlayer.setTint(0xff0000);
-    }
+    // if (playerInfo.team === 'blue') {
+    //     otherPlayer.setTint(0x0000ff);
+    // } else {
+    //     otherPlayer.setTint(0xff0000);
+    // }
     otherPlayer.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer);
 }
@@ -82,6 +82,10 @@ function create() {
         });
     });
 
+    keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+
     this.cursors = this.input.keyboard.createCursorKeys();
 }
 
@@ -112,15 +116,15 @@ function update() {
             rotation: this.ship.rotation
         };
 
-        if (this.cursors.left.isDown) {
+        if (this.cursors.left.isDown || keyA.isDown) {
             this.ship.setAngularVelocity(-150);
-        } else if (this.cursors.right.isDown) {
+        } else if (this.cursors.right.isDown || keyD.isDown) {
             this.ship.setAngularVelocity(150);
         } else {
             this.ship.setAngularVelocity(0);
         }
 
-        if (this.cursors.up.isDown) {
+        if (this.cursors.up.isDown || keyW.isDown) {
             this.physics.velocityFromRotation(this.ship.rotation + 1.5, 100, this.ship.body.acceleration);
         } else {
             this.ship.setAcceleration(0);
