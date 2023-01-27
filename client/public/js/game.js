@@ -1,50 +1,3 @@
-class Bullet extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y) {
-        super(scene, x, y, 'bullet');
-    }
-
-    fire(x, y, game) {
-        this.body.reset(x, y);
-
-        this.setActive(true);
-        this.setVisible(true);
-
-        game.physics.velocityFromRotation(game.ship.rotation, 600, this.body.velocity);
-    }
-
-    preUpdate(time, delta) {
-        super.preUpdate(time, delta);
-
-        if (this.y <= -32 || this.y >= window.innerHeight + 32 ||
-            this.x <= -32 || this.x >= window.innerWidth + 32) {
-            this.setActive(false);
-            this.setVisible(false);
-        }
-    }
-}
-
-class Bullets extends Phaser.Physics.Arcade.Group {
-    constructor(scene) {
-        super(scene.physics.world, scene);
-
-        this.createMultiple({
-            frameQuantity: 50,
-            key: 'bullet',
-            active: false,
-            visible: false,
-            classType: Bullet
-        });
-    }
-
-    fireBullet(x, y, game) {
-        let bullet = this.getFirstDead(false);
-
-        if (bullet) {
-            bullet.fire(x, y, game);
-        }
-    }
-}
-
 function addPlayer(self, playerInfo) {
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(75, 60);
     self.ship.setDrag(100);
@@ -167,9 +120,9 @@ class Game extends Phaser.Scene {
     }
 }
 
-var config = {
+const config = {
     type: Phaser.AUTO,
-    parent: 'phaser-example',
+    parent: 'game',
     width: window.innerWidth - 100,
     height: window.innerHeight - 100,
     physics: {
@@ -182,4 +135,4 @@ var config = {
     scene: Game
 };
 
-var game = new Phaser.Game(config);
+const game = new Phaser.Game(config);

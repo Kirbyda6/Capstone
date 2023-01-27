@@ -1,7 +1,7 @@
 {
-  "name": "game-client",
+  "name": "game-server",
   "version": "1.0.0",
-  "description": "This is the client for our game using Phaser and an Express server to server files.",
+  "description": "This is the server for our game. This will be the Authoritative Server that keeps track of player data.",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.5.4",
-    "socket.io-client": "^4.5.4"
+    "socket.io": "^4.5.4"
   }
 }
