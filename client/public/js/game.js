@@ -1,8 +1,10 @@
 var config = {
     type: Phaser.AUTO,
-    parent: 'phaser-example',
-    width: window.innerWidth - 100,
-    height: window.innerHeight - 100,
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        parent: 'phaser-example',
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
     physics: {
         default: 'arcade',
         arcade: {
