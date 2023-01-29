@@ -1,3 +1,22 @@
+var config = {
+    type: Phaser.AUTO,
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        parent: 'game',
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: false,
+            gravity: { y: 0 }
+        }
+    },
+    scene: Game
+};
+
+var game = new Phaser.Game(config);
+
 function addPlayer(self, playerInfo) {
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(75, 60);
     self.ship.setDrag(100);
@@ -14,7 +33,6 @@ function addOtherPlayers(self, playerInfo) {
 class Game extends Phaser.Scene {
     constructor () {
         super();
-
         this.bullets;
         this.ship;
     }
@@ -119,20 +137,3 @@ class Game extends Phaser.Scene {
         }
     }
 }
-
-const config = {
-    type: Phaser.AUTO,
-    parent: 'game',
-    width: window.innerWidth - 100,
-    height: window.innerHeight - 100,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            debug: false,
-            gravity: { y: 0 }
-        }
-    },
-    scene: Game
-};
-
-const game = new Phaser.Game(config);
