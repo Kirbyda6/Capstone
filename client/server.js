@@ -2,7 +2,6 @@ const express = require('express');
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
-// const auServ = require('socket.io-client')('http://localhost:8081/')
 
 app.use(express.static(__dirname + '/public'));
 
