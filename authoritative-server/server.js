@@ -1,19 +1,18 @@
 const express = require('express');
-const cors = require('cors');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server);
-
-let corsOptions = {
-    origin: true
-};
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:8080"
+    }
+});
 
 const players = {};
 
 io.on('connection', (socket) => {
-    console.log(`User connected - id: ${socket.id}`);
+    console.log(`User connected: ${socket.id}`);
 
     players[socket.id] = {
         rotation: 0,
@@ -28,7 +27,7 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
     socket.on('disconnect', () => {
-        console.log(`User disconnected - id: ${socket.id}`);
+        console.log(`User disconnected: ${socket.id}`);
 
         delete players[socket.id];
 
@@ -43,8 +42,6 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('playerMoved', players[socket.id]);
     });
 });
-
-app.use(cors(corsOptions));
 
 const PORT = process.env.PORT || 9000;
 server.listen(PORT, () => {
