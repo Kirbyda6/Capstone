@@ -21,8 +21,6 @@ var config = {
 
 var game = new Phaser.Game(config);
 
-const socket = io("http://localhost:9000");
-
 function addPlayer(self, playerInfo) {
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(75, 60);
     // if (playerInfo.team === 'blue') {
@@ -53,7 +51,7 @@ function preload() {
 
 function create() {
     const self = this;
-    this.socket = io();
+    this.socket = io("http://localhost:9000");
     this.otherPlayers = this.physics.add.group();
     this.socket.on('currentPlayers', (players) => {
         Object.keys(players).forEach((id) => {

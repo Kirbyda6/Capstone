@@ -1,13 +1,25 @@
-const express = require('express');
-const app = express();
-const http = require('http');
-const server = http.createServer(app);
+// const express = require('express');
+// const app = express();
+// const http = require('http');
+// const server = http.createServer(app);
+// const { Server } = require("socket.io");
+const express = require("express");
+const { createServer } = require("http");
 const { Server } = require("socket.io");
-const io = new Server(server, {
+
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
     cors: {
         origin: "http://localhost:8080"
     }
 });
+
+const PORT = process.env.PORT || 9000;
+httpServer.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}...`);
+});
+
 
 const players = {};
 
@@ -43,7 +55,3 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 9000;
-server.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}...`);
-});
