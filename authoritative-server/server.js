@@ -1,18 +1,30 @@
-const express = require('express');
+// const express = require('express');
+// const app = express();
+// const http = require('http');
+// const server = http.createServer(app);
+// const { Server } = require("socket.io");
+const express = require("express");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+
 const app = express();
-const server = require('http').Server(app);
-const io = require('socket.io')(server);
-
-app.use(express.static(__dirname + '/public'));
-
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: "http://localhost:8080"
+    }
 });
+
+const PORT = process.env.PORT || 9000;
+httpServer.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}...`);
+});
+
 
 const players = {};
 
 io.on('connection', (socket) => {
-    console.log('User connected...');
+    console.log(`User connected: ${socket.id}`);
 
     players[socket.id] = {
         rotation: 0,
@@ -26,7 +38,7 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
     socket.on('disconnect', () => {
-        console.log('User disconnected...');
+        console.log(`User disconnected: ${socket.id}`);
 
         delete players[socket.id];
 
@@ -42,6 +54,3 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(8080, () => {
-    console.log('Listening on port 8080...');
-});

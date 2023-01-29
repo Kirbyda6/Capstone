@@ -26,7 +26,7 @@ class Game extends Phaser.Scene {
 
     create() {
         const self = this;
-        this.socket = io();
+        this.socket = io("http://localhost:9000");
         this.otherPlayers = this.physics.add.group();
         this.bullets = new Bullets(this);
 
