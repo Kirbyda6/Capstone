@@ -11,11 +11,11 @@ class Bullets extends Phaser.Physics.Arcade.Group {
         });
     }
 
-    fireBullet(x, y, game) {
+    fireBullet(x, y) {
         let bullet = this.getFirstDead(false);
 
         if (bullet) {
-            bullet.fire(x, y, game);
+            bullet.fire(x, y);
         }
     }
 }

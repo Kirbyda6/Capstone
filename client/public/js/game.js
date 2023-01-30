@@ -1,5 +1,6 @@
 function addPlayer(self, playerInfo) {
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(75, 60);
+    self.selfCollider.add(self.ship);
     self.ship.setDrag(100);
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200);
@@ -28,6 +29,8 @@ class Game extends Phaser.Scene {
         const self = this;
         this.socket = io("http://localhost:9000");
         this.otherPlayers = this.physics.add.group();
+        this.selfCollider = this.physics.add.group();
+        this.otherCollider = this.physics.add.group();
         this.bullets = new Bullets(this);
 
         this.socket.on('currentPlayers', (players) => {
@@ -59,6 +62,20 @@ class Game extends Phaser.Scene {
                     otherPlayer.setPosition(playerInfo.x, playerInfo.y);
                 }
             });
+        });
+
+        this.socket.on('fired', (bulletData) => {
+            let bullet = self.physics.add.image(bulletData.x, bulletData.y, 'bullet');
+            self.selfCollider.add(bullet);
+            bullet.setPosition(bulletData.x, bulletData.y);
+            bullet.setVelocity(bulletData.v.x, bulletData.v.y);
+            this.physics.add.collider(
+                self.selfCollider,
+                undefined,
+                () => {
+                    game.destroy(true);
+                }
+            );
         });
 
         this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -94,7 +111,7 @@ class Game extends Phaser.Scene {
                 x: this.ship.x,
                 y: this.ship.y,
                 rotation: this.ship.rotation
-            };
+            }
 
             if (this.cursors.left.isDown || this.keyA.isDown) {
                 this.ship.setAngularVelocity(-150);
@@ -111,7 +128,7 @@ class Game extends Phaser.Scene {
             }
 
             if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
-                this.bullets.fireBullet(this.ship.x, this.ship.y, this);
+                this.bullets.fireBullet(this.ship.x, this.ship.y);
             };
 
             this.physics.world.wrap(this.ship);
