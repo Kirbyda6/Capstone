@@ -12,7 +12,7 @@ function addOtherPlayers(self, playerInfo) {
 }
 
 class Game extends Phaser.Scene {
-    constructor () {
+    constructor() {
         super();
         this.bullets;
         this.ship;
