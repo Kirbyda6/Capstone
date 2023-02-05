@@ -1,21 +1,21 @@
 class Bullets extends Phaser.Physics.Arcade.Group {
-    constructor(scene) {
+    constructor(scene, asset) {
         super(scene.physics.world, scene);
 
         this.createMultiple({
             frameQuantity: 50,
-            key: 'bullet',
+            key: asset,
             active: false,
             visible: false,
             classType: Bullet
         });
     }
 
-    fireBullet(x, y) {
+    fireBullet(ship) {
         let bullet = this.getFirstDead(false);
 
         if (bullet) {
-            bullet.fire(x, y);
+            bullet.fire(ship);
         }
     }
 }
