@@ -23,6 +23,7 @@ class Game extends Phaser.Scene {
     preload() {
         // UI elements
         this.load.image('bg', 'assets/bg.jpg');
+        this.load.image('scoreIcon', 'assets/scoreIcon.png');
         this.load.image('healthIcon', 'assets/healthIcon.png');
         this.load.image('shieldIcon', 'assets/shieldIcon.png');
         this.load.image('healthNode', 'assets/healthNode.png');
@@ -51,20 +52,25 @@ class Game extends Phaser.Scene {
         // initialize the player's upgrades with the server
         this.socket.emit('initialize', this.player);
 
-        this.ui = this.physics.add.group();
         // initialize the UI with player starting stats
+        this.ui = this.add.container();
         this.socket.on('initUi', player => {
+            // placeholder score
+            this.score = 0;
+            this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.4));
+            this.ui.add(this.add.text(50, 10, this.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '32px' }))
+
+            this.ui.add(this.add.image(10, 50, 'healthIcon').setOrigin(0).setScale(0.4));
             let pos = 50;
-            // this.ui.add(10, 10, 'healthIcon').setOrigin(0).setScale(0.4);
-            this.ui.add(this.add.image(10, 10, 'healthIcon').setOrigin(0).setScale(0.4));
             for (let i = 0; i < player.health; i++) {
-                this.ui.add(this.add.image(pos, 12.5, 'healthNode').setOrigin(0).setScale(0.5));
+                this.ui.add(this.add.image(pos, 52.5, 'healthNode').setOrigin(0).setScale(0.5));
                 pos += 15;
             }
-            this.ui.add(this.add.image(10, 50, 'shieldIcon').setOrigin(0).setScale(0.4));
+
+            this.ui.add(this.add.image(10, 90, 'shieldIcon').setOrigin(0).setScale(0.4));
             pos = 50;
             for (let i = 0; i < player.shield; i++) {
-                this.ui.add(this.add.image(pos, 52.5, 'shieldNode').setOrigin(0).setScale(0.5));
+                this.ui.add(this.add.image(pos, 92.5, 'shieldNode').setOrigin(0).setScale(0.5));
                 pos += 15;
             }
         });
@@ -113,6 +119,14 @@ class Game extends Phaser.Scene {
 
     update() {
         if (this.ship) {
+            // handle ui overlap
+            if (Phaser.Geom.Intersects.RectangleToRectangle(this.ui.getBounds(), this.ship.getBounds())) {
+                this.ui.setAlpha(0.2)
+            }
+            else {
+                this.ui.setAlpha(1);
+            }
+
             // emit player movement
             let x = this.ship.x;
             let y = this.ship.y;
