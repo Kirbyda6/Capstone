@@ -1,5 +1,5 @@
 function addPlayer(self, playerInfo) {
-    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(75, 60);
+    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setScale(0.7);
     self.ship.setDrag(100);
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200);
@@ -7,7 +7,7 @@ function addPlayer(self, playerInfo) {
 }
 
 function addOtherPlayers(self, playerInfo) {
-    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
+    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setScale(0.7);
     otherPlayer.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer);
 }
@@ -32,6 +32,8 @@ class Game extends Phaser.Scene {
         this.load.image('ship', 'assets/spaceShips_001.png');
         this.load.image('otherPlayer', 'assets/enemyBlack5.png');
         this.load.image('bullet', 'assets/purple_ball.png');
+        // particles
+        this.load.image('exhaust', 'assets/particles/exhaust.png');
     }
 
     create() {
@@ -82,6 +84,23 @@ class Game extends Phaser.Scene {
             Object.keys(players).forEach((id) => {
                 if (players[id].playerId === self.socket.id) {
                     addPlayer(self, players[id]);
+                    // attach particle emitter to the ship
+                    let exhaustParticles = this.add.particles('exhaust');
+                    this.emitter = exhaustParticles.createEmitter({
+                        quantity: 20,
+                        speedX: { min: -50, max: 50 },
+                        speedY: { min: -50, max: 50 },
+                        accelerationX: 0,
+                        accelerationY: 0,
+                        lifespan: { min: 0, max: 250 },
+                        alpha: { start: 0.5, end: 0, ease: 'Sine.easeIn' },
+                        scale: { start: 0.05, end: 0.001 },
+                        blendMode: 'ADD',
+                        frequency: 15,
+                        follow: this.ship,
+                        tint: 0xF4511E,
+                    });
+
                 } else {
                     addOtherPlayers(self, players[id]);
                 }
