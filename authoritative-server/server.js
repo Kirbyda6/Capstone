@@ -40,12 +40,12 @@ io.on('connection', (socket) => {
         io.emit('playerDisconnecting', socket.id);
     });
 
-    socket.on('playerDied', () => {
-        console.log(`User died: ${socket.id}`);
+    socket.on('playerDied', (id) => {
+        console.log(`User died: ${id}`);
 
-        delete players[socket.id];
+        delete players[id];
 
-        io.emit('playerDisconnecting', socket.id);
+        io.emit('playerDisconnecting', id);
     });
 
     socket.on('playerMovement', (data) => {
@@ -57,6 +57,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('fire', (ship) => {
-        socket.broadcast.emit('fired', ship);
+        ship.playerId = socket.id;
+        io.emit('fired', ship);
     });
 });

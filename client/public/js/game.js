@@ -11,10 +11,6 @@ function addOtherPlayers(self, playerInfo) {
     self.otherPlayers.add(otherPlayer);
 }
 
-function endGame() {
-    console.log('hi')
-}
-
 class Game extends Phaser.Scene {
     constructor() {
         super();
@@ -34,25 +30,21 @@ class Game extends Phaser.Scene {
         const self = this;
         this.socket = io("http://localhost:9000");
         this.otherPlayers = this.physics.add.group();
-        this.playerBullets = new Bullets(this, 'playerBullet');
-        this.enemyBullets = new Bullets(this, 'enemyBullet');
 
         this.socket.on('currentPlayers', (players) => {
             Object.keys(players).forEach((id) => {
                 if (players[id].playerId === self.socket.id) {
                     addPlayer(self, players[id]);
-                    self.physics.add.collider(self.ship, self.enemyBullets,() => {
-                        game.destroy(true);
-                        self.socket.emit('playerDied', self.socket.id);
-                    });
                 } else {
                     addOtherPlayers(self, players[id]);
-                    self.physics.add.collider(self.otherPlayers, self.playerBullets, (otherPlayer, bullet) => {
-                        otherPlayer.destroy();
-                        bullet.destroy();
-                    });
                 }
             });
+            if (this.ship) {
+                this.playerBullets = new Bullets(this, 'playerBullet');
+            }
+            if (self.otherPlayers.getChildren()) {
+                this.enemyBullets = new Bullets(this, 'enemyBullet');
+            }
         });
 
         this.socket.on('newPlayer', (playerInfo) => {
@@ -60,6 +52,9 @@ class Game extends Phaser.Scene {
         });
 
         this.socket.on('playerDisconnecting', (playerId) => {
+            if (playerId === this.socket.id) {
+                window.location.replace('http://localhost:8080');
+            }
             self.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (playerId === otherPlayer.playerId) {
                     otherPlayer.destroy();
@@ -77,7 +72,11 @@ class Game extends Phaser.Scene {
         });
 
         this.socket.on('fired', (ship) => {
-            self.enemyBullets.fireBullet(ship);
+            if (ship.playerId !== this.socket.id) {
+                self.enemyBullets.fireBullet(ship);
+            } else {
+                self.playerBullets.fireBullet(ship);
+            }
         });
 
         this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -130,7 +129,7 @@ class Game extends Phaser.Scene {
             }
 
             if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
-                this.playerBullets.fireBullet(this.ship);
+                this.socket.emit('fire', this.ship);
             };
 
             this.physics.world.wrap(this.ship);
