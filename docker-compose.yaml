@@ -1,0 +1,9 @@
+services:
+  server:
+    build: authoritative-server/.
+    ports:
+      - "9000:9000"
+  client:
+    build: client/.
+    ports:
+      - "8080:8080"

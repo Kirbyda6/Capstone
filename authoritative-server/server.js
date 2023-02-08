@@ -25,8 +25,16 @@ io.on('connection', (socket) => {
         rotation: 0,
         x: Math.floor(Math.random() * 700) + 50,
         y: Math.floor(Math.random() * 500) + 50,
-        playerId: socket.id
+        playerId: socket.id,
+        health: 5,
+        shield: 5,
     };
+
+    socket.on('initialize', (upgradeInfo) => {
+        players[socket.id].health += upgradeInfo.healthUpgrade;
+        players[socket.id].shield += upgradeInfo.shieldUpgrade;
+        socket.emit('initUi', players[socket.id]);
+    });
 
     socket.emit('currentPlayers', players);
 
