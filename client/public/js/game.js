@@ -4,6 +4,7 @@ function addPlayer(self, playerInfo) {
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200);
     self.ship.setCollideWorldBounds(true);
+    self.ship.body.immovable = true;
 }
 
 function addOtherPlayers(self, playerInfo) {
