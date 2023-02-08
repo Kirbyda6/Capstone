@@ -40,8 +40,13 @@ class Game extends Phaser.Scene {
     }
 
     create() {
-        // load background image and scale to size of screen
-        let background = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, 'bg');
+        const cams = this.cameras.main;
+        cams.setBounds(0, 0, 3200, 2400);
+
+        this.physics.world.bounds.width = 3200;
+        this.physics.world.bounds.height = 2400;
+        
+        let background = this.add.image(0, 0, 'bg').setOrigin(0);
         let scale = Math.max(this.cameras.main.width / background.width, this.cameras.main.height / background.height);
         background.setScale(scale).setScrollFactor(0);
 
@@ -62,20 +67,20 @@ class Game extends Phaser.Scene {
         this.socket.on('initUi', player => {
             // placeholder score
             this.score = 0;
-            this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.4));
-            this.ui.add(this.add.text(50, 10, this.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '32px' }))
+            this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
+            this.ui.add(this.add.text(50, 10, this.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '32px' }).setScrollFactor(0));
 
-            this.ui.add(this.add.image(10, 50, 'healthIcon').setOrigin(0).setScale(0.4));
+            this.ui.add(this.add.image(10, 50, 'healthIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
             let pos = 50;
             for (let i = 0; i < player.health; i++) {
-                this.ui.add(this.add.image(pos, 52.5, 'healthNode').setOrigin(0).setScale(0.5));
+                this.ui.add(this.add.image(pos, 52.5, 'healthNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
                 pos += 15;
             }
 
-            this.ui.add(this.add.image(10, 90, 'shieldIcon').setOrigin(0).setScale(0.4));
+            this.ui.add(this.add.image(10, 90, 'shieldIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
             pos = 50;
             for (let i = 0; i < player.shield; i++) {
-                this.ui.add(this.add.image(pos, 92.5, 'shieldNode').setOrigin(0).setScale(0.5));
+                this.ui.add(this.add.image(pos, 92.5, 'shieldNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
                 pos += 15;
             }
         });
@@ -86,6 +91,8 @@ class Game extends Phaser.Scene {
             Object.keys(players).forEach((id) => {
                 if (players[id].playerId === self.socket.id) {
                     addPlayer(self, players[id]);
+                    cams.startFollow(self.ship);
+
                     // attach particle emitter to the ship
                     let exhaustParticles = this.add.particles('exhaust');
                     this.emitter = exhaustParticles.createEmitter({
