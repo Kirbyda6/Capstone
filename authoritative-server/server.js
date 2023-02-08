@@ -15,8 +15,8 @@ httpServer.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}...`);
 });
 
-
 const players = {};
+const bullets = {};
 
 io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
@@ -48,6 +48,14 @@ io.on('connection', (socket) => {
         io.emit('playerDisconnecting', socket.id);
     });
 
+    socket.on('playerDied', (id) => {
+        console.log(`User died: ${id}`);
+
+        delete players[id];
+
+        io.emit('playerDisconnecting', id);
+    });
+
     socket.on('playerMovement', (data) => {
         players[socket.id].x = data.x;
         players[socket.id].y = data.y;
@@ -55,5 +63,9 @@ io.on('connection', (socket) => {
         // emit a message to all players about the player that moved
         socket.broadcast.emit('playerMoved', players[socket.id]);
     });
-});
 
+    socket.on('fire', (ship) => {
+        ship.playerId = socket.id;
+        io.emit('fired', ship);
+    });
+});

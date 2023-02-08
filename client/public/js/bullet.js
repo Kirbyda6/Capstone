@@ -1,15 +1,28 @@
 class Bullet extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y) {
-        super(scene, x, y, 'bullet');
+    constructor(scene, x, y, key) {
+        super(scene, x, y, key);
+        
+        if (key === 'playerBullet') {
+            this.scene.physics.add.collider(this.scene.otherPlayers, this, (bullet, otherPlayer) => {
+                console.log('enemy hit')
+                bullet.setActive(false);
+                bullet.setVisible(false);
+                this.scene.socket.emit('playerDied', otherPlayer.playerId);
+            });
+        } else if (key === 'enemyBullet') {
+            this.scene.physics.add.collider(this.scene.ship, this, (ship, bullet) => {
+                this.scene.socket.emit('playerDied', this.scene.socket.id);
+            });
+        }
     }
 
-    fire(x, y, game) {
-        this.body.reset(x, y);
+    fire(ship) {
+        this.body.reset(ship.x, ship.y);
 
         this.setActive(true);
         this.setVisible(true);
 
-        game.physics.velocityFromRotation(game.ship.rotation + 1.6, 600, this.body.velocity);
+        this.scene.physics.velocityFromRotation(ship.rotation + 1.6, 600, this.body.velocity);
     }
 
     preUpdate(time, delta) {
