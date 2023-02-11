@@ -1,3 +1,6 @@
+import { Bullet } from './bullet.js';
+import { Bullets } from './bullets.js';
+
 function addPlayer(self, playerInfo) {
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setScale(0.7);
     self.ship.setDrag(100);
@@ -13,7 +16,7 @@ function addOtherPlayers(self, playerInfo) {
     self.otherPlayers.add(otherPlayer);
 }
 
-class Game extends Phaser.Scene {
+export class Game extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
         this.playerBullets;
@@ -45,10 +48,8 @@ class Game extends Phaser.Scene {
 
         this.physics.world.bounds.width = 3200;
         this.physics.world.bounds.height = 2400;
-        
+
         let background = this.add.image(0, 0, 'bg').setOrigin(0);
-        let scale = Math.max(this.cameras.main.width / background.width, this.cameras.main.height / background.height);
-        background.setScale(scale).setScrollFactor(0);
 
         const self = this;
         this.socket = io('http://localhost:9000');
@@ -218,22 +219,3 @@ class Game extends Phaser.Scene {
         }
     }
 }
-
-const config = {
-    type: Phaser.AUTO,
-    scale: {
-        mode: Phaser.Scale.RESIZE,
-        parent: 'game',
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-    },
-    physics: {
-        default: 'arcade',
-        arcade: {
-            debug: false,
-            gravity: { y: 0 }
-        }
-    },
-    scene: Game
-};
-
-const game = new Phaser.Game(config);
