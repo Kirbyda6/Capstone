@@ -3,6 +3,7 @@
 	"version": "1.0.0",
 	"description": "This is the client for our game using Phaser and an Express server to server files.",
 	"main": "index.js",
+	"type": "module",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
