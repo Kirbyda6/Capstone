@@ -9,6 +9,7 @@ class Main extends Phaser.Scene {
         // UI elements
         this.load.image('playButton', '../assets/playButton.png');
         this.load.image('gameTitle', '../assets/gameTitle.png');
+        this.load.image('login', '../assets/login.png');
     }
 
     create() {
@@ -16,8 +17,15 @@ class Main extends Phaser.Scene {
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
         this.add.image(screenCenterX, screenCenterY - 200, 'gameTitle').setOrigin(0.5);
 
-        let button = this.add.image(screenCenterX, screenCenterY, 'playButton').setInteractive({ cursor: 'pointer' });
-        button.on('pointerdown', () => { this.scene.start('GameScene') });
+        this.playButton = this.add.image(screenCenterX, screenCenterY, 'playButton').setInteractive({ cursor: 'pointer' });
+        this.loginButton = this.add.image(screenCenterX, screenCenterY + 100, 'login').setInteractive({ cursor: 'pointer' });
+        this.loginButton.setTintFill(0xffffff);
+
+        this.playButton.on('pointerdown', () => { this.scene.start('GameScene') });
+        this.loginButton.on('pointerdown', () => {
+            const url = new URL('http://localhost:9000/');
+            window.open(url, '_self')
+        });
     }
 
     update() {

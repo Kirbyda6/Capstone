@@ -4,8 +4,20 @@
 		<meta charset="utf-8" />
 		<link type="text/css" rel="stylesheet" href="styles/styles.css" />
 		<title>Play Galactic Gauntlet</title>
+		<script>
+			function deleteAllCookies() {
+				const cookies = document.cookie.split(";");
+
+				for (let i = 0; i < cookies.length; i++) {
+					let cookie = cookies[i];
+					let eqPos = cookie.indexOf("=");
+					let name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+					document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+				}
+			}
+		</script>
 	</head>
-	<body>
+	<body onunload="deleteAllCookies()">
 		<script src="https://cdn.jsdelivr.net/npm/phaser@3.51.0/dist/phaser-arcade-physics.min.js"></script>
 		<script
 			src="https://cdn.socket.io/4.5.4/socket.io.min.js"
