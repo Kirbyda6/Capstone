@@ -104,6 +104,10 @@ class Main extends Phaser.Scene {
                     ease: 'Power3'
                 });
             } else {
+                this.playButton.on('pointerdown', () => {
+                    this.scene.start('GameScene');
+                    this.menuMusic.stop();
+                });
                 text.setText(this.player.username);
             }
         } else {
