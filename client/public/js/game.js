@@ -1,7 +1,10 @@
 import { Bullets } from './bullets.js';
+import { parseCookie } from './main.js';
+import { Player } from './player.js';
 
 function addPlayer(self, playerInfo) {
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setScale(0.7);
+    self.ship.setRotation(playerInfo.rotation);
     self.ship.setDrag(100);
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200);
@@ -52,13 +55,15 @@ export class Game extends Phaser.Scene {
 
         const self = this;
         this.socket = io('http://localhost:9000');
+        let cookies = parseCookie();
+        this.player = new Player(cookies.playerID, cookies.username, cookies.IDtoken);
 
-        // get player's upgrade level (will need to be replaced with a db query, from the player entity)
-        // player upgrade level will be 0-5 for both health and shield
-        this.player = {
-            healthUpgrade: 3,
-            shieldUpgrade: 1,
-        }
+        // // get player's upgrade level (will need to be replaced with a db query, from the player entity)
+        // // player upgrade level will be 0-5 for both health and shield
+        // this.player = {
+        //     healthUpgrade: 3,
+        //     shieldUpgrade: 1,
+        // }
         // initialize the player's upgrades with the server
         this.socket.emit('initialize', this.player);
 
@@ -183,6 +188,7 @@ export class Game extends Phaser.Scene {
                 r !== this.ship.oldPosition.rotation)) {
 
                 this.socket.emit('playerMovement', {
+                    id: this.player.id,
                     x: this.ship.x,
                     y: this.ship.y,
                     rotation: this.ship.rotation

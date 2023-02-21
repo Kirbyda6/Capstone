@@ -100,6 +100,12 @@ app.get('/oauth', (req, res) => {
     });
 });
 
+// app.get('/player/:id', checkJwt, (req, res) => {
+//     Player.getPlayer(req.params.id).then((player) => {
+//         res.json(player);
+//     })
+// });
+
 app.post('/player/:id', checkJwt, (req, res) => {
     Player.getPlayer(req.params.id).then((player) => {
         if (player &&
@@ -132,49 +138,63 @@ app.use((err, req, res, next) => {
 });
 
 io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    socket.on('initialize', (player) => {
+        console.log(`User connected: ${player.id}`);
 
-    players[socket.id] = {
-        rotation: 0,
-        x: Math.floor(Math.random() * 3100) + 50,
-        y: Math.floor(Math.random() * 2300) + 50,
-        playerId: socket.id,
-        health: 5,
-        shield: 5,
-    };
-
-    socket.on('initialize', (upgradeInfo) => {
-        players[socket.id].health += upgradeInfo.healthUpgrade;
-        players[socket.id].shield += upgradeInfo.shieldUpgrade;
-        socket.emit('initUi', players[socket.id]);
+        Player.getPlayer(player.id).then((user) => {
+            players[player.id] = {
+                rotation: Math.floor(Math.random() * 360),
+                x: Math.floor(Math.random() * 3100) + 50,
+                y: Math.floor(Math.random() * 2300) + 50,
+                playerId: socket.id,
+                health: user.health,
+                shield: user.sheilds,
+            };
+    
+            socket.emit('initUi', players[player.id]);
+            socket.emit('currentPlayers', players);
+            socket.broadcast.emit('newPlayer', players[player.id]);
+        });
     });
 
-    socket.emit('currentPlayers', players);
-
-    socket.broadcast.emit('newPlayer', players[socket.id]);
-
     socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
+        let id;
+        
+        Object.keys(players).forEach((key) => {
+            if (players[key].playerId === socket.id) {
+                id = key;
+            }
+        });
+        
+        console.log(`User disconnected: ${id}`);
 
-        delete players[socket.id];
+        delete players[id];
 
         io.emit('playerDisconnecting', socket.id);
     });
 
     socket.on('playerDied', (id) => {
-        console.log(`User died: ${id}`);
+        let playerId;
+        
+        Object.keys(players).forEach((key) => {
+            if (players[key].playerId === id) {
+                playerId = key;
+            }
+        });
+        
+        console.log(`User died: ${playerId}`);
 
-        delete players[id];
+        delete players[playerId];
 
         io.emit('playerDisconnecting', id);
     });
 
     socket.on('playerMovement', (data) => {
-        players[socket.id].x = data.x;
-        players[socket.id].y = data.y;
-        players[socket.id].rotation = data.rotation;
+        players[data.id].x = data.x;
+        players[data.id].y = data.y;
+        players[data.id].rotation = data.rotation;
         // emit a message to all players about the player that moved
-        socket.broadcast.emit('playerMoved', players[socket.id]);
+        socket.broadcast.emit('playerMoved', players[data.id]);
     });
 
     socket.on('fire', (ship) => {

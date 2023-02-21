@@ -1,6 +1,7 @@
 import { Game } from './game.js';
+import { Player } from './player.js';
 
-function parseCookie() {
+export function parseCookie() {
     const playerData = {};
 
     document.cookie.split('; ').forEach((cookie) => {
@@ -9,14 +10,6 @@ function parseCookie() {
     });
 
     return playerData;
-}
-
-class Player {
-    constructor(id, username, jwt) {
-        this.id = id;
-        this.username = username;
-        this.jwt = jwt;
-    }
 }
 
 class Main extends Phaser.Scene {
@@ -60,18 +53,9 @@ class Main extends Phaser.Scene {
                         const username = form.getChildByName('username');
                         const confirm = form.getChildByName('confirm');
                         if (username.value && username.value === confirm.value) {
-                            fetch(`http://localhost:9000/player/${this.player.id}`, {
-                                method:'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': 'Bearer ' + this.player.jwt
-                                },
-                                body: JSON.stringify({
-                                    username: username.value
-                                })
-                            }).then((response) => {
-                                return response.json()
-                            }).then((cookie) => {
+                            this.player.changeName(this.player, username.value)
+                            .then((cookie) => {
+                                this.player.username = cookie.username;
                                 document.cookie = `username=${cookie.username}; max-age=3600; SameSite=Strict`;
                                 text.setText(username.value);
                                 form.removeListener('click');
@@ -96,6 +80,7 @@ class Main extends Phaser.Scene {
                     ease: 'Power3'
                 });
             } else {
+                this.playButton.on('pointerdown', () => { this.scene.start('GameScene') });
                 text.setText(this.player.username);
             }
         } else {
