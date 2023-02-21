@@ -10,9 +10,14 @@ class Main extends Phaser.Scene {
         this.load.image('playButton', '../assets/playButton.png');
         this.load.image('gameTitle', '../assets/gameTitle.png');
         this.load.image('login', '../assets/login.png');
+        // audio
+        this.load.audio('menuMusic', 'assets/menuMusic.ogg');
     }
 
     create() {
+        this.bgMusic = this.sound.add('menuMusic', { volume: 0.25, loop: true });
+        this.bgMusic.play();
+
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
         this.add.image(screenCenterX, screenCenterY - 200, 'gameTitle').setOrigin(0.5);
@@ -21,7 +26,10 @@ class Main extends Phaser.Scene {
         this.loginButton = this.add.image(screenCenterX, screenCenterY + 100, 'login').setInteractive({ cursor: 'pointer' });
         this.loginButton.setTintFill(0xffffff);
 
-        this.playButton.on('pointerdown', () => { this.scene.start('GameScene') });
+        this.playButton.on('pointerdown', () => {
+            this.scene.start('GameScene');
+            this.bgMusic.stop();
+        });
         this.loginButton.on('pointerdown', () => {
             const url = new URL('http://localhost:9000/');
             window.open(url, '_self')

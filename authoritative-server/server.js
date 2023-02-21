@@ -19,6 +19,7 @@ httpServer.listen(PORT, () => {
 
 const players = {};
 const bullets = {};
+let enemies = {};
 
 app.get('/', (req, res) => {
     const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -27,7 +28,7 @@ app.get('/', (req, res) => {
         'response_type': 'code',
         'client_id': process.env.client_id,
         'redirect_uri': req.protocol + "://" + req.get("host")
-        + req.baseUrl + '/oauth',
+            + req.baseUrl + '/oauth',
         'scope': 'profile email'
     }
 
@@ -44,37 +45,50 @@ app.get('/oauth', (req, res) => {
         'client_id': process.env.client_id,
         'client_secret': process.env.client_secret,
         'redirect_uri': req.protocol + "://" + req.get("host")
-        + req.baseUrl + '/oauth',
+            + req.baseUrl + '/oauth',
         'grant_type': 'authorization_code'
     }
 
     axios.post('https://oauth2.googleapis.com/token', body)
-    .then((token) => {
-        axios.get('https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses', {
-            headers:{
-                'Authorization': 'Bearer ' + token.data.access_token
-            }
-        }).then((user) => {
-            const id = user.data.names[0].metadata.source.id;
-            Player.getPlayer(id)
-            .then((player) => {
-                if (player) {
-                    res.setHeader('Set-Cookie', [
-                        `playerID=${player._id}; max-age=3600; SameSite=Strict`,
-                        `username=${player.username}; max-age=3600; SameSite=Strict`
-                    ]).redirect('http://localhost:8080/');
-                } else {
-                    Player.addPlayer(id)
-                    .then(() => {
-                        res.setHeader('Set-Cookie', [
-                            `playerID=${id}; max-age=3600; SameSite=Strict`
-                        ]).redirect('http://localhost:8080/');
-                    });
+        .then((token) => {
+            axios.get('https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses', {
+                headers: {
+                    'Authorization': 'Bearer ' + token.data.access_token
                 }
+            }).then((user) => {
+                const id = user.data.names[0].metadata.source.id;
+                Player.getPlayer(id)
+                    .then((player) => {
+                        if (player) {
+                            res.setHeader('Set-Cookie', [
+                                `playerID=${player._id}; max-age=3600; SameSite=Strict`,
+                                `username=${player.username}; max-age=3600; SameSite=Strict`
+                            ]).redirect('http://localhost:8080/');
+                        } else {
+                            Player.addPlayer(id)
+                                .then(() => {
+                                    res.setHeader('Set-Cookie', [
+                                        `playerID=${id}; max-age=3600; SameSite=Strict`
+                                    ]).redirect('http://localhost:8080/');
+                                });
+                        }
+                    });
             });
         });
-    });
 });
+
+function cleanup(spawnController) {
+    if (!Object.keys(players).length) {
+        enemies = {};
+    }
+    clearInterval(spawnController);
+}
+
+function getRandomPlayer() {
+    let playerIds = Object.keys(players);
+    let randIndex = Math.floor(Math.random() * playerIds.length);
+    return players[playerIds[randIndex]];
+}
 
 io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
@@ -100,18 +114,16 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.id}`);
-
         delete players[socket.id];
-
         io.emit('playerDisconnecting', socket.id);
+        cleanup(spawnController);
     });
 
     socket.on('playerDied', (id) => {
         console.log(`User died: ${id}`);
-
         delete players[id];
-
         io.emit('playerDisconnecting', id);
+        cleanup(spawnController);
     });
 
     socket.on('playerMovement', (data) => {
@@ -125,5 +137,42 @@ io.on('connection', (socket) => {
     socket.on('fire', (ship) => {
         ship.playerId = socket.id;
         io.emit('fired', ship);
+    });
+
+    // enemy spawn controller
+    let spawnController = setInterval(() => {
+        const generateId = () => {
+            const dateStr = Date.now().toString(36);
+            const rand = Math.random().toString(36).substr(2);
+            return dateStr + rand;
+        };
+        const enemyId = generateId();
+        const enemyTarget = getRandomPlayer();
+        const newEnemy = enemies[enemyId] = {
+            enemyId: enemyId,
+            x: Math.floor(Math.random() * 3100) + 50,
+            y: Math.floor(Math.random() * 2300) + 50,
+            target: {
+                id: enemyTarget.playerId,
+                x: enemyTarget.x,
+                y: enemyTarget.y,
+            }
+        };
+        io.emit('newEnemy', newEnemy);
+    }, 5000);
+
+    socket.on('updateEnemies', (enemyList) => {
+        Object.keys(enemyList).forEach((id) => {
+            enemies[id].x = enemyList[id].x;
+            enemies[id].y = enemyList[id].y;
+        })
+        socket.emit('currentEnemies', enemies);
+    })
+
+    socket.emit('currentEnemies', enemies);
+
+    socket.on('enemyDied', (id) => {
+        delete enemies[id];
+        io.emit('removeEnemy', id);
     });
 });
