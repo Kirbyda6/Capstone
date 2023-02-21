@@ -1,7 +1,9 @@
+import { Bullet } from './bullet.js';
 import { Bullets } from './bullets.js';
 
 function addPlayer(self, playerInfo) {
-    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setScale(0.7);
+    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setScale(0.4);
+    self.ship.playerId = playerInfo.playerId;
     self.ship.setDrag(100);
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200);
@@ -9,10 +11,19 @@ function addPlayer(self, playerInfo) {
     self.ship.body.immovable = true;
 }
 
-function addOtherPlayers(self, playerInfo) {
-    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setScale(0.7);
+function addOtherPlayer(self, playerInfo) {
+    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setScale(0.4);
     otherPlayer.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer);
+}
+
+function addEnemy(self, enemy) {
+    const currEnemy = self.add.sprite(enemy.x, enemy.y, 'alien').setOrigin(0.5, 0.5).setScale(0.3);
+    currEnemy.enemyId = enemy.enemyId;
+    currEnemy.targetX = enemy.target.x;
+    currEnemy.targetY = enemy.target.y;
+    self.aiEnemies.add(currEnemy);
+    return currEnemy;
 }
 
 export class Game extends Phaser.Scene {
@@ -37,17 +48,25 @@ export class Game extends Phaser.Scene {
         this.load.image('otherPlayer', 'assets/enemyBlack5.png');
         this.load.image('playerBullet', 'assets/purple_ball.png');
         this.load.image('enemyBullet', 'assets/purple_ball.png');
-        // particles
-        this.load.image('exhaust', 'assets/particles/exhaust.png');
+        this.load.image('alien', 'assets/alien.png');
+        // audio
+        this.load.audio('gameMusic', 'assets/gameMusic.ogg');
+        this.load.audio('shootSound', 'assets/shoot.ogg');
+        this.load.audio('alienSound', 'assets/alien.ogg');
     }
 
     create() {
+        // init audio
+        this.gameMusic = this.sound.add('gameMusic', { volume: 0.25, loop: true });
+        this.gameMusic.play();
+        this.shootSound = this.sound.add('shootSound', { volume: 0.5, loop: false });
+        this.alienSound = this.sound.add('alienSound', { volume: 0.5, loop: false });
+
+        // set camera and background
         const cams = this.cameras.main;
         cams.setBounds(0, 0, 3200, 2400);
-
         this.physics.world.bounds.width = 3200;
         this.physics.world.bounds.height = 2400;
-
         let background = this.add.image(0, 0, 'bg').setOrigin(0);
 
         const self = this;
@@ -92,26 +111,8 @@ export class Game extends Phaser.Scene {
                 if (players[id].playerId === self.socket.id) {
                     addPlayer(self, players[id]);
                     cams.startFollow(self.ship);
-
-                    // attach particle emitter to the ship
-                    let exhaustParticles = this.add.particles('exhaust');
-                    this.emitter = exhaustParticles.createEmitter({
-                        quantity: 20,
-                        speedX: { min: -50, max: 50 },
-                        speedY: { min: -50, max: 50 },
-                        accelerationX: 0,
-                        accelerationY: 0,
-                        lifespan: { min: 0, max: 250 },
-                        alpha: { start: 0.5, end: 0, ease: 'Sine.easeIn' },
-                        scale: { start: 0.05, end: 0.001 },
-                        blendMode: 'ADD',
-                        frequency: 15,
-                        follow: this.ship,
-                        tint: 0xF4511E,
-                    });
-
                 } else {
-                    addOtherPlayers(self, players[id]);
+                    addOtherPlayer(self, players[id]);
                 }
             });
             if (this.ship) {
@@ -123,12 +124,20 @@ export class Game extends Phaser.Scene {
         });
 
         this.socket.on('newPlayer', (playerInfo) => {
-            addOtherPlayers(self, playerInfo);
+            addOtherPlayer(self, playerInfo);
+            let temp = {};
+            this.aiEnemies.getChildren().forEach((enemy) => {
+                temp[enemy.enemyId] = {
+                    x: enemy.x,
+                    y: enemy.y,
+                }
+            })
+            this.socket.emit('updateEnemies', temp);
         });
 
         this.socket.on('playerDisconnecting', (playerId) => {
             if (playerId === this.socket.id) {
-                this.scene.start('MainScene');
+                window.location.replace('http://localhost:8080');
             }
             self.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (playerId === otherPlayer.playerId) {
@@ -149,16 +158,42 @@ export class Game extends Phaser.Scene {
         this.socket.on('fired', (ship) => {
             if (ship.playerId !== this.socket.id) {
                 self.enemyBullets.fireBullet(ship);
+                this.shootSound.play();
             } else {
                 self.playerBullets.fireBullet(ship);
+                this.shootSound.play();
             }
         });
 
+        this.aiEnemies = this.physics.add.group();
+
+        this.socket.on('newEnemy', (enemy) => {
+            let newEnemy = addEnemy(self, enemy);
+            let target = new Phaser.Math.Vector2(enemy.target.x, enemy.target.y)
+            this.physics.moveToObject(newEnemy, target, 100);
+        });
+
+        this.socket.on('currentEnemies', (enemies) => {
+            Object.keys(enemies).forEach((id) => {
+                let currEnemy = addEnemy(self, enemies[id]);
+                let target = new Phaser.Math.Vector2(enemies[id].target.x, enemies[id].target.y)
+                this.physics.moveToObject(currEnemy, target, 100);
+            });
+        });
+
+        this.socket.on('removeEnemy', (enemyId) => {
+            this.aiEnemies.getChildren().forEach((enemy) => {
+                if (enemyId === enemy.enemyId) {
+                    enemy.destroy();
+                }
+            });
+        });
+
+        // keybinds
         this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
         this.cursors = this.input.keyboard.createCursorKeys();
     }
 
