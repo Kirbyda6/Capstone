@@ -1,6 +1,41 @@
-body,
-html {
+body, html {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
+}
+
+#modal {
+	font: 1.2em monospace;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: white;
+	border-radius: 3px;
+	width: 25vw;
+	height: 25vh;
+	border: solid gray;
+}
+
+#col {
+	text-align: center;
+}
+#contents {
+	width: 50%;
+	margin: auto;
+}
+
+.item {
+	margin: 5px;
+}
+
+button {
+	margin: 5px;
+}
+
+label {
+	display: flex;
+}
+
+input {
+	width: 100%;
 }

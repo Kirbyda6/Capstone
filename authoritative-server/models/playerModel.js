@@ -16,6 +16,7 @@ const conn = mongoose.connect(process.env.MONGO_URL, opts)
 
 const playerSchema = new Schema({
     _id: Number,
+    name: {type: String, default: ''},
     email: {type: String, default: ''},
     username: {type: String, default: ''},
     health: {type: Number, default: 3},
@@ -25,8 +26,12 @@ const playerSchema = new Schema({
 
 const Player = mongoose.model('Player', playerSchema);
 
-function addPlayer(id) {
-    const newPlayer = Player({_id: id});
+function addPlayer(id, name, email) {
+    const newPlayer = Player({
+        _id: id,
+        name: name,
+        email: email
+    });
     return newPlayer.save();
 }
 
@@ -34,4 +39,11 @@ function getPlayer(id) {
     return Player.findById(id).exec();
 }
 
-module.exports = { addPlayer, getPlayer }
+function updateName(id, name) {
+    return Player.findByIdAndUpdate(id, {username: name}, (err, res) => {
+        if (res) return true;
+        return false;
+    })
+}
+
+module.exports = { addPlayer, getPlayer, updateName }

@@ -4,7 +4,6 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
 
         if (key === 'playerBullet') {
             this.scene.physics.add.collider(this.scene.otherPlayers, this, (bullet, otherPlayer) => {
-                console.log('enemy hit')
                 bullet.setActive(false).setVisible(false);
                 this.scene.socket.emit('playerDied', otherPlayer.playerId);
             });

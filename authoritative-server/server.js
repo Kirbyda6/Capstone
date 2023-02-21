@@ -2,14 +2,34 @@ const express = require("express");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const axios = require('axios');
+const cors = require('cors');
+var bodyParser = require('body-parser');
+const { expressjwt: jwt } = require("express-jwt");
+const jwksRsa = require('jwks-rsa');
 const Player = require('./models/playerModel');
 
 const app = express();
+app.use(cors({ origin: 'http://localhost:8080' }));
+app.use(bodyParser.json());
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
         origin: "http://localhost:8080"
     }
+});
+
+// Middleware to check if a valid JWT was supplied in the header
+const checkJwt = jwt({
+    secret: jwksRsa.expressJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `https://www.googleapis.com/oauth2/v3/certs`
+    }),
+  
+    // Validate the audience and the issuer.
+    issuer: 'https://accounts.google.com',
+    algorithms: ['RS256']
 });
 
 const PORT = process.env.PORT || 9000;
@@ -56,24 +76,59 @@ app.get('/oauth', (req, res) => {
             }
         }).then((user) => {
             const id = user.data.names[0].metadata.source.id;
+            const name = user.data.names[0].unstructuredName;
+            const email = user.data.emailAddresses[0].value;
             Player.getPlayer(id)
             .then((player) => {
                 if (player) {
                     res.setHeader('Set-Cookie', [
                         `playerID=${player._id}; max-age=3600; SameSite=Strict`,
-                        `username=${player.username}; max-age=3600; SameSite=Strict`
+                        `username=${player.username}; max-age=3600; SameSite=Strict`,
+                        `IDtoken=${token.data.id_token}; max-age=3600; SameSite=Strict`
                     ]).redirect('http://localhost:8080/');
                 } else {
-                    Player.addPlayer(id)
+                    Player.addPlayer(id, name, email)
                     .then(() => {
                         res.setHeader('Set-Cookie', [
-                            `playerID=${id}; max-age=3600; SameSite=Strict`
+                            `playerID=${id}; max-age=3600; SameSite=Strict`,
+                            `IDtoken=${token.data.id_token}; max-age=3600; SameSite=Strict`
                         ]).redirect('http://localhost:8080/');
                     });
                 }
             });
         });
     });
+});
+
+app.post('/player/:id', checkJwt, (req, res) => {
+    Player.getPlayer(req.params.id).then((player) => {
+        if (player &&
+            player.name === req.auth.name &&
+            player.email === req.auth.email) {
+            if (Player.updateName(req.params.id, req.body.username)) {
+                res.json({username: req.body.username});
+            } else {
+                res.status(404).end();
+            }
+        }
+    })
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    if (err.code && err.code === 'credentials_required') {
+        res.status(err.status).send({
+            "Error": "No token was found"
+        });
+    } else if (err.code && err.code === 'invalid_token') {
+        res.status(err.status).send({
+            "Error": "The provided token is invalid - Try refreshing your token"
+        });
+    } else {
+        res.send({
+            "Error": err
+        });
+    }
 });
 
 io.on('connection', (socket) => {

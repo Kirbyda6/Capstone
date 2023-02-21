@@ -1,4 +1,3 @@
-import { Bullet } from './bullet.js';
 import { Bullets } from './bullets.js';
 
 function addPlayer(self, playerInfo) {
@@ -129,7 +128,7 @@ export class Game extends Phaser.Scene {
 
         this.socket.on('playerDisconnecting', (playerId) => {
             if (playerId === this.socket.id) {
-                window.location.replace('http://localhost:8080');
+                this.scene.start('MainScene');
             }
             self.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (playerId === otherPlayer.playerId) {
