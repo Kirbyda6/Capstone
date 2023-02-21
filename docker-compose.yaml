@@ -3,6 +3,7 @@ services:
     build: authoritative-server/.
     ports:
       - "9000:9000"
+    restart: on-failure
   client:
     build: client/.
     ports:
