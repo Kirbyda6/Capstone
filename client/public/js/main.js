@@ -1,4 +1,5 @@
 import { Game } from './game.js';
+import { GameOver } from './gameOver.js';
 import { Player } from './player.js';
 
 export function parseCookie() {
@@ -19,10 +20,10 @@ class Main extends Phaser.Scene {
 
     preload() {
         // UI elements
-        this.load.image('playButton', '../assets/playButton.png');
-        this.load.image('gameTitle', '../assets/gameTitle.png');
-        this.load.image('login', '../assets/login.png');
-        this.load.html('username', '../assets/html/username.html');
+        this.load.image('playButton', 'assets/playButton.png');
+        this.load.image('gameTitle', 'assets/gameTitle.png');
+        this.load.image('login', 'assets/loginButton.png');
+        this.load.html('username', 'assets/html/username.html');
         // audio
         this.load.audio('menuMusic', 'assets/menuMusic.ogg');
     }
@@ -98,7 +99,6 @@ class Main extends Phaser.Scene {
             }
         } else {
             this.loginButton = this.add.image(screenCenterX, screenCenterY, 'login').setInteractive({ cursor: 'pointer' });
-            this.loginButton.setTintFill(0xffffff);
             this.loginButton.on('pointerdown', () => {
                 const url = new URL('http://localhost:9000/');
                 window.open(url, '_self');
@@ -126,7 +126,7 @@ const config = {
         }
     },
     dom: { createContainer: true },
-    scene: [Main, Game]
+    scene: [Main, Game, GameOver]
 };
 
 const main = new Phaser.Game(config);
