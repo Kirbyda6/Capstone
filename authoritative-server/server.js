@@ -224,17 +224,19 @@ io.on('connection', (socket) => {
         };
         const enemyId = generateId();
         const enemyTarget = getRandomPlayer();
-        const newEnemy = enemies[enemyId] = {
-            enemyId: enemyId,
-            x: Math.floor(Math.random() * 3100) + 50,
-            y: Math.floor(Math.random() * 2300) + 50,
-            target: {
-                id: enemyTarget.socketId,
-                x: enemyTarget.x,
-                y: enemyTarget.y,
-            }
-        };
-        io.emit('newEnemy', newEnemy);
+        if (enemyTarget) {
+            const newEnemy = enemies[enemyId] = {
+                enemyId: enemyId,
+                x: Math.floor(Math.random() * 3100) + 50,
+                y: Math.floor(Math.random() * 2300) + 50,
+                target: {
+                    id: enemyTarget.socketId,
+                    x: enemyTarget.x,
+                    y: enemyTarget.y,
+                }
+            };
+            io.emit('newEnemy', newEnemy);
+        }
     }, 5000);
 
     socket.on('updateEnemies', (enemyList) => {
