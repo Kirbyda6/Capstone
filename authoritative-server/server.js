@@ -83,16 +83,16 @@ app.get('/oauth', (req, res) => {
             .then((player) => {
                 if (player) {
                     res.setHeader('Set-Cookie', [
-                        `playerID=${player._id}; max-age=3600; SameSite=Strict`,
-                        `username=${player.username}; max-age=3600; SameSite=Strict`,
-                        `IDtoken=${token.data.id_token}; max-age=3600; SameSite=Strict`
+                        `playerID=${player._id}; max-age=3600;`,
+                        `username=${player.username}; max-age=3600;`,
+                        `IDtoken=${token.data.id_token}; max-age=3600;`
                     ]).redirect('http://localhost:8080/');
                 } else {
                     Player.addPlayer(id, name, email)
                     .then(() => {
                         res.setHeader('Set-Cookie', [
-                            `playerID=${id}; max-age=3600; SameSite=Strict`,
-                            `IDtoken=${token.data.id_token}; max-age=3600; SameSite=Strict`
+                            `playerID=${id}; max-age=3600;`,
+                            `IDtoken=${token.data.id_token}; max-age=3600;`
                         ]).redirect('http://localhost:8080/');
                     });
                 }
@@ -100,6 +100,12 @@ app.get('/oauth', (req, res) => {
         });
     });
 });
+
+// app.get('/player/:id', checkJwt, (req, res) => {
+//     Player.getPlayer(req.params.id).then((player) => {
+//         res.json(player);
+//     })
+// });
 
 app.post('/player/:id', checkJwt, (req, res) => {
     Player.getPlayer(req.params.id).then((player) => {
@@ -146,51 +152,66 @@ function getRandomPlayer() {
 }
 
 io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    socket.on('initialize', (player) => {
+        console.log(`User connected: ${player.id}`);
 
-    players[socket.id] = {
-        rotation: 0,
-        x: Math.floor(Math.random() * 3100) + 50,
-        y: Math.floor(Math.random() * 2300) + 50,
-        playerId: socket.id,
-        health: 5,
-        shield: 5,
-    };
-
-    socket.on('initialize', (upgradeInfo) => {
-        players[socket.id].health += upgradeInfo.healthUpgrade;
-        players[socket.id].shield += upgradeInfo.shieldUpgrade;
-        socket.emit('initUi', players[socket.id]);
+        Player.getPlayer(player.id).then((user) => {
+            players[player.id] = {
+                rotation: Math.floor(Math.random() * 360),
+                x: Math.floor(Math.random() * 3100) + 50,
+                y: Math.floor(Math.random() * 2300) + 50,
+                socketId: socket.id,
+                health: user.health,
+                shield: user.sheilds,
+            };
+            socket.emit('initUi', players[player.id]);
+            socket.emit('currentPlayers', players);
+            socket.broadcast.emit('newPlayer', players[player.id]);
+        });
     });
 
-    socket.emit('currentPlayers', players);
-
-    socket.broadcast.emit('newPlayer', players[socket.id]);
-
     socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
-        delete players[socket.id];
-        io.emit('playerDisconnecting', socket.id);
-        cleanup(spawnController);
+        Object.keys(players).forEach((key) => {
+            if (players[key].socketId === socket.id) {
+                id = key;
+
+                console.log(`User disconnected: ${key}`);
+
+                delete players[key];
+
+                io.emit('playerDisconnecting', socket.id);
+            }
+        });
     });
 
     socket.on('playerDied', (id) => {
-        console.log(`User died: ${id}`);
-        delete players[id];
-        io.emit('playerDisconnecting', id);
-        cleanup(spawnController);
+        let playerId;
+        
+        Object.keys(players).forEach((key) => {
+            if (players[key].socketId === id) {
+                playerId = key;
+            }
+        });
+
+        if (playerId) {
+            console.log(`User died: ${playerId}`);
+
+            delete players[playerId];
+
+            io.emit('playerDisconnecting', id);
+        }
     });
 
     socket.on('playerMovement', (data) => {
-        players[socket.id].x = data.x;
-        players[socket.id].y = data.y;
-        players[socket.id].rotation = data.rotation;
+        players[data.id].x = data.x;
+        players[data.id].y = data.y;
+        players[data.id].rotation = data.rotation;
         // emit a message to all players about the player that moved
-        socket.broadcast.emit('playerMoved', players[socket.id]);
+        socket.broadcast.emit('playerMoved', players[data.id]);
     });
 
     socket.on('fire', (ship) => {
-        ship.playerId = socket.id;
+        ship.socketId = socket.id;
         io.emit('fired', ship);
     });
 

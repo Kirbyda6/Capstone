@@ -1,6 +1,7 @@
 import { Game } from './game.js';
+import { Player } from './player.js';
 
-function parseCookie() {
+export function parseCookie() {
     const playerData = {};
 
     document.cookie.split('; ').forEach((cookie) => {
@@ -11,18 +12,9 @@ function parseCookie() {
     return playerData;
 }
 
-class Player {
-    constructor(id, username, jwt) {
-        this.id = id;
-        this.username = username;
-        this.jwt = jwt;
-    }
-}
-
 class Main extends Phaser.Scene {
     constructor() {
         super({ key: 'MainScene' });
-        this.player;
     }
 
     preload() {
@@ -36,6 +28,7 @@ class Main extends Phaser.Scene {
     }
 
     create() {
+        this.player;
         this.menuMusic = this.sound.add('menuMusic', { volume: 0.25, loop: true });
         this.menuMusic.play();
 
@@ -65,24 +58,16 @@ class Main extends Phaser.Scene {
                         const username = form.getChildByName('username');
                         const confirm = form.getChildByName('confirm');
                         if (username.value && username.value === confirm.value) {
-                            fetch(`http://localhost:9000/player/${this.player.id}`, {
-                                method:'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': 'Bearer ' + this.player.jwt
-                                },
-                                body: JSON.stringify({
-                                    username: username.value
-                                })
-                            }).then((response) => {
-                                return response.json()
-                            }).then((cookie) => {
+                            this.player.changeName(this.player, username.value)
+                            .then((cookie) => {
+                                this.player.username = cookie.username;
                                 document.cookie = `username=${cookie.username}; max-age=3600; SameSite=Strict`;
                                 text.setText(username.value);
                                 form.removeListener('click');
                                 this.playButton.on('pointerdown', () => {
-                                    this.scene.start('GameScene');
                                     this.menuMusic.stop();
+                                    this.scene.stop();
+                                    this.scene.start('GameScene');
                                 });
                                 this.tweens.add({ targets: form.rotate3d, x: 1, w: 90, duration: 2000, ease: 'Power3' });
                                 this.tweens.add({ targets: form, scaleX: 2, scaleY: 2, y: this.cameras.main.height * 2, duration: 3000, ease: 'Power3',
@@ -105,8 +90,9 @@ class Main extends Phaser.Scene {
                 });
             } else {
                 this.playButton.on('pointerdown', () => {
-                    this.scene.start('GameScene');
                     this.menuMusic.stop();
+                    this.scene.stop();
+                    this.scene.start('GameScene');
                 });
                 text.setText(this.player.username);
             }
