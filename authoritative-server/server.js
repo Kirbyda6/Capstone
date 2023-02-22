@@ -229,7 +229,7 @@ io.on('connection', (socket) => {
             x: Math.floor(Math.random() * 3100) + 50,
             y: Math.floor(Math.random() * 2300) + 50,
             target: {
-                id: enemyTarget.playerId,
+                id: enemyTarget.socketId,
                 x: enemyTarget.x,
                 y: enemyTarget.y,
             }

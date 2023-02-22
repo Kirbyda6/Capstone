@@ -111,7 +111,7 @@ export class Game extends Phaser.Scene {
                     addPlayer(self, players[id]);
                     cams.startFollow(self.ship);
                 } else {
-                    addOtherPlayer(self, players[id]);
+                    addOtherPlayers(self, players[id]);
                 }
             });
             if (this.ship) {
@@ -123,7 +123,7 @@ export class Game extends Phaser.Scene {
         });
 
         this.socket.on('newPlayer', (playerInfo) => {
-            addOtherPlayer(self, playerInfo);
+            addOtherPlayers(self, playerInfo);
             let temp = {};
             this.aiEnemies.getChildren().forEach((enemy) => {
                 temp[enemy.enemyId] = {
