@@ -15,7 +15,6 @@ export function parseCookie() {
 class Main extends Phaser.Scene {
     constructor() {
         super({ key: 'MainScene' });
-        this.player;
     }
 
     preload() {
@@ -27,6 +26,7 @@ class Main extends Phaser.Scene {
     }
 
     create() {
+        this.player;
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
         this.add.image(screenCenterX, screenCenterY - 200, 'gameTitle').setOrigin(0.5);
@@ -80,7 +80,10 @@ class Main extends Phaser.Scene {
                     ease: 'Power3'
                 });
             } else {
-                this.playButton.on('pointerdown', () => { this.scene.start('GameScene') });
+                this.playButton.on('pointerdown', () => {
+                    this.scene.stop();
+                    this.scene.start('GameScene');
+                });
                 text.setText(this.player.username);
             }
         } else {

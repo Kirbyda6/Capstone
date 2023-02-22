@@ -82,16 +82,16 @@ app.get('/oauth', (req, res) => {
             .then((player) => {
                 if (player) {
                     res.setHeader('Set-Cookie', [
-                        `playerID=${player._id}; max-age=3600; SameSite=Strict`,
-                        `username=${player.username}; max-age=3600; SameSite=Strict`,
-                        `IDtoken=${token.data.id_token}; max-age=3600; SameSite=Strict`
+                        `playerID=${player._id}; max-age=3600;`,
+                        `username=${player.username}; max-age=3600;`,
+                        `IDtoken=${token.data.id_token}; max-age=3600;`
                     ]).redirect('http://localhost:8080/');
                 } else {
                     Player.addPlayer(id, name, email)
                     .then(() => {
                         res.setHeader('Set-Cookie', [
-                            `playerID=${id}; max-age=3600; SameSite=Strict`,
-                            `IDtoken=${token.data.id_token}; max-age=3600; SameSite=Strict`
+                            `playerID=${id}; max-age=3600;`,
+                            `IDtoken=${token.data.id_token}; max-age=3600;`
                         ]).redirect('http://localhost:8080/');
                     });
                 }
@@ -146,11 +146,10 @@ io.on('connection', (socket) => {
                 rotation: Math.floor(Math.random() * 360),
                 x: Math.floor(Math.random() * 3100) + 50,
                 y: Math.floor(Math.random() * 2300) + 50,
-                playerId: socket.id,
+                socketId: socket.id,
                 health: user.health,
                 shield: user.sheilds,
             };
-    
             socket.emit('initUi', players[player.id]);
             socket.emit('currentPlayers', players);
             socket.broadcast.emit('newPlayer', players[player.id]);
@@ -158,35 +157,35 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        let id;
-        
         Object.keys(players).forEach((key) => {
-            if (players[key].playerId === socket.id) {
+            if (players[key].socketId === socket.id) {
                 id = key;
+
+                console.log(`User disconnected: ${key}`);
+
+                delete players[key];
+
+                io.emit('playerDisconnecting', socket.id);
             }
         });
-        
-        console.log(`User disconnected: ${id}`);
-
-        delete players[id];
-
-        io.emit('playerDisconnecting', socket.id);
     });
 
     socket.on('playerDied', (id) => {
         let playerId;
         
         Object.keys(players).forEach((key) => {
-            if (players[key].playerId === id) {
+            if (players[key].socketId === id) {
                 playerId = key;
             }
         });
-        
-        console.log(`User died: ${playerId}`);
 
-        delete players[playerId];
+        if (playerId) {
+            console.log(`User died: ${playerId}`);
 
-        io.emit('playerDisconnecting', id);
+            delete players[playerId];
+
+            io.emit('playerDisconnecting', id);
+        }
     });
 
     socket.on('playerMovement', (data) => {
@@ -198,7 +197,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('fire', (ship) => {
-        ship.playerId = socket.id;
+        ship.socketId = socket.id;
         io.emit('fired', ship);
     });
 });

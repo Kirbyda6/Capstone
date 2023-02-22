@@ -14,17 +14,13 @@ function addPlayer(self, playerInfo) {
 
 function addOtherPlayers(self, playerInfo) {
     const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setScale(0.7);
-    otherPlayer.playerId = playerInfo.playerId;
+    otherPlayer.socketId = playerInfo.socketId;
     self.otherPlayers.add(otherPlayer);
 }
 
 export class Game extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
-        this.playerBullets;
-        this.enemyBullets;
-        this.ship;
-        this.player;
     }
 
     preload() {
@@ -45,6 +41,10 @@ export class Game extends Phaser.Scene {
     }
 
     create() {
+        this.playerBullets;
+        this.enemyBullets;
+        this.ship;
+        this.player;
         const cams = this.cameras.main;
         cams.setBounds(0, 0, 3200, 2400);
 
@@ -58,12 +58,6 @@ export class Game extends Phaser.Scene {
         let cookies = parseCookie();
         this.player = new Player(cookies.playerID, cookies.username, cookies.IDtoken);
 
-        // // get player's upgrade level (will need to be replaced with a db query, from the player entity)
-        // // player upgrade level will be 0-5 for both health and shield
-        // this.player = {
-        //     healthUpgrade: 3,
-        //     shieldUpgrade: 1,
-        // }
         // initialize the player's upgrades with the server
         this.socket.emit('initialize', this.player);
 
@@ -94,7 +88,7 @@ export class Game extends Phaser.Scene {
 
         this.socket.on('currentPlayers', (players) => {
             Object.keys(players).forEach((id) => {
-                if (players[id].playerId === self.socket.id) {
+                if (players[id].socketId === self.socket.id) {
                     addPlayer(self, players[id]);
                     cams.startFollow(self.ship);
 
@@ -131,12 +125,15 @@ export class Game extends Phaser.Scene {
             addOtherPlayers(self, playerInfo);
         });
 
-        this.socket.on('playerDisconnecting', (playerId) => {
-            if (playerId === this.socket.id) {
+        this.socket.on('playerDisconnecting', (id) => {
+            if (id === this.socket.id) {
+                this.socket.disconnect();
+                this.ship = undefined;
+                this.scene.stop();
                 this.scene.start('MainScene');
             }
             self.otherPlayers.getChildren().forEach((otherPlayer) => {
-                if (playerId === otherPlayer.playerId) {
+                if (id === otherPlayer.socketId) {
                     otherPlayer.destroy();
                 }
             });
@@ -144,7 +141,7 @@ export class Game extends Phaser.Scene {
 
         this.socket.on('playerMoved', (playerInfo) => {
             self.otherPlayers.getChildren().forEach((otherPlayer) => {
-                if (playerInfo.playerId === otherPlayer.playerId) {
+                if (playerInfo.socketId === otherPlayer.socketId) {
                     otherPlayer.setRotation(playerInfo.rotation);
                     otherPlayer.setPosition(playerInfo.x, playerInfo.y);
                 }
@@ -152,7 +149,7 @@ export class Game extends Phaser.Scene {
         });
 
         this.socket.on('fired', (ship) => {
-            if (ship.playerId !== this.socket.id) {
+            if (ship.socketId !== this.socket.id) {
                 self.enemyBullets.fireBullet(ship);
             } else {
                 self.playerBullets.fireBullet(ship);
