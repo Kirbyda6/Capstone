@@ -2,6 +2,7 @@ import { Bullet } from './bullet.js';
 import { Bullets } from './bullets.js';
 import { parseCookie } from './main.js';
 import { Player } from './player.js';
+import { GameOver } from './gameOver.js';
 
 function addPlayer(self, playerInfo) {
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setScale(0.4);
@@ -138,8 +139,9 @@ export class Game extends Phaser.Scene {
             if (id === this.socket.id) {
                 this.socket.disconnect();
                 this.ship = undefined;
+                this.gameMusic.stop();
                 this.scene.stop();
-                this.scene.start('MainScene');
+                this.scene.start('GameOverScene');
             }
             self.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (id === otherPlayer.socketId) {
