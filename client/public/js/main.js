@@ -23,10 +23,15 @@ class Main extends Phaser.Scene {
         this.load.image('gameTitle', '../assets/gameTitle.png');
         this.load.image('login', '../assets/login.png');
         this.load.html('username', '../assets/html/username.html');
+        // audio
+        this.load.audio('menuMusic', 'assets/menuMusic.ogg');
     }
 
     create() {
         this.player;
+        this.menuMusic = this.sound.add('menuMusic', { volume: 0.25, loop: true });
+        this.menuMusic.play();
+
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
         this.add.image(screenCenterX, screenCenterY - 200, 'gameTitle').setOrigin(0.5);
@@ -60,6 +65,7 @@ class Main extends Phaser.Scene {
                                 text.setText(username.value);
                                 form.removeListener('click');
                                 this.playButton.on('pointerdown', () => {
+                                    this.menuMusic.stop();
                                     this.scene.stop();
                                     this.scene.start('GameScene');
                                 });
@@ -84,6 +90,7 @@ class Main extends Phaser.Scene {
                 });
             } else {
                 this.playButton.on('pointerdown', () => {
+                    this.menuMusic.stop();
                     this.scene.stop();
                     this.scene.start('GameScene');
                 });

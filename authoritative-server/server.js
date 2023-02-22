@@ -39,6 +39,7 @@ httpServer.listen(PORT, () => {
 
 const players = {};
 const bullets = {};
+let enemies = {};
 
 app.get('/', (req, res) => {
     const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -137,6 +138,19 @@ app.use((err, req, res, next) => {
     }
 });
 
+function cleanup(spawnController) {
+    if (!Object.keys(players).length) {
+        enemies = {};
+    }
+    clearInterval(spawnController);
+}
+
+function getRandomPlayer() {
+    let playerIds = Object.keys(players);
+    let randIndex = Math.floor(Math.random() * playerIds.length);
+    return players[playerIds[randIndex]];
+}
+
 io.on('connection', (socket) => {
     socket.on('initialize', (player) => {
         console.log(`User connected: ${player.id}`);
@@ -199,5 +213,42 @@ io.on('connection', (socket) => {
     socket.on('fire', (ship) => {
         ship.socketId = socket.id;
         io.emit('fired', ship);
+    });
+
+    // enemy spawn controller
+    let spawnController = setInterval(() => {
+        const generateId = () => {
+            const dateStr = Date.now().toString(36);
+            const rand = Math.random().toString(36).substr(2);
+            return dateStr + rand;
+        };
+        const enemyId = generateId();
+        const enemyTarget = getRandomPlayer();
+        const newEnemy = enemies[enemyId] = {
+            enemyId: enemyId,
+            x: Math.floor(Math.random() * 3100) + 50,
+            y: Math.floor(Math.random() * 2300) + 50,
+            target: {
+                id: enemyTarget.playerId,
+                x: enemyTarget.x,
+                y: enemyTarget.y,
+            }
+        };
+        io.emit('newEnemy', newEnemy);
+    }, 5000);
+
+    socket.on('updateEnemies', (enemyList) => {
+        Object.keys(enemyList).forEach((id) => {
+            enemies[id].x = enemyList[id].x;
+            enemies[id].y = enemyList[id].y;
+        })
+        socket.emit('currentEnemies', enemies);
+    })
+
+    socket.emit('currentEnemies', enemies);
+
+    socket.on('enemyDied', (id) => {
+        delete enemies[id];
+        io.emit('removeEnemy', id);
     });
 });
