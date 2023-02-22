@@ -4,7 +4,7 @@ import { parseCookie } from './main.js';
 import { Player } from './player.js';
 
 function addPlayer(self, playerInfo) {
-    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setScale(0.7);
+    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setScale(0.4);
     self.ship.setRotation(playerInfo.rotation);
     self.ship.setDrag(100);
     self.ship.setAngularDrag(100);
@@ -14,7 +14,7 @@ function addPlayer(self, playerInfo) {
 }
 
 function addOtherPlayers(self, playerInfo) {
-    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setScale(0.7);
+    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setScale(0.4);
     otherPlayer.socketId = playerInfo.socketId;
     self.otherPlayers.add(otherPlayer);
 }
@@ -124,14 +124,14 @@ export class Game extends Phaser.Scene {
 
         this.socket.on('newPlayer', (playerInfo) => {
             addOtherPlayers(self, playerInfo);
-            let temp = {};
+            let currentEnemies = {};
             this.aiEnemies.getChildren().forEach((enemy) => {
-                temp[enemy.enemyId] = {
+                currentEnemies[enemy.enemyId] = {
                     x: enemy.x,
                     y: enemy.y,
                 }
             })
-            this.socket.emit('updateEnemies', temp);
+            this.socket.emit('updateEnemies', currentEnemies);
         });
 
         this.socket.on('playerDisconnecting', (id) => {

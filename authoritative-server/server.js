@@ -174,11 +174,9 @@ io.on('connection', (socket) => {
         Object.keys(players).forEach((key) => {
             if (players[key].socketId === socket.id) {
                 id = key;
-
                 console.log(`User disconnected: ${key}`);
-
                 delete players[key];
-
+                cleanup(spawnController);
                 io.emit('playerDisconnecting', socket.id);
             }
         });
@@ -195,9 +193,8 @@ io.on('connection', (socket) => {
 
         if (playerId) {
             console.log(`User died: ${playerId}`);
-
             delete players[playerId];
-
+            cleanup(spawnController);
             io.emit('playerDisconnecting', id);
         }
     });
