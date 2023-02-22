@@ -59,7 +59,10 @@ class Main extends Phaser.Scene {
                                 document.cookie = `username=${cookie.username}; max-age=3600; SameSite=Strict`;
                                 text.setText(username.value);
                                 form.removeListener('click');
-                                this.playButton.on('pointerdown', () => { this.scene.start('GameScene') });
+                                this.playButton.on('pointerdown', () => {
+                                    this.scene.stop();
+                                    this.scene.start('GameScene');
+                                });
                                 this.tweens.add({ targets: form.rotate3d, x: 1, w: 90, duration: 2000, ease: 'Power3' });
                                 this.tweens.add({ targets: form, scaleX: 2, scaleY: 2, y: this.cameras.main.height * 2, duration: 3000, ease: 'Power3',
                                     onComplete: () => {
