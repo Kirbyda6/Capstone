@@ -89,9 +89,8 @@ export class Game extends Phaser.Scene {
         this.ui = this.add.group();
         this.socket.on('initUi', player => {
             // placeholder score
-            this.score = 0;
             this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
-            this.ui.add(this.add.text(50, 10, this.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '32px' }).setName('score').setScrollFactor(0));
+            this.ui.add(this.add.text(50, 10, player.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '32px' }).setName('score').setScrollFactor(0));
 
             this.ui.add(this.add.image(10, 50, 'healthIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
             let pos = 50;
@@ -200,12 +199,11 @@ export class Game extends Phaser.Scene {
             });
         });
 
-        this.socket.on('adjustScore', (playerId, amount) => {
+        this.socket.on('adjustScore', (playerId, score) => {
             if (this.socket.id === playerId) {
-                this.score += amount;
                 this.ui.getChildren().forEach((element) => {
                     if (element.name === 'score') {
-                        element.text = this.score.toLocaleString('en-US');
+                        element.text = score.toLocaleString('en-US');
                     }
                 })
             }

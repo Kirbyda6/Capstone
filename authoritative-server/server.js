@@ -151,6 +151,15 @@ function getRandomPlayer() {
     return players[playerIds[randIndex]];
 }
 
+function getPlayerBySocketId(socketId) {
+    const playerList = Object.keys(players)
+    for (let i = 0; i < playerList.length; i++) {
+        if (players[playerList[i]].socketId === socketId) {
+            return players[playerList[i]]
+        }
+    }
+}
+
 io.on('connection', (socket) => {
     socket.on('initialize', (player) => {
         console.log(`User connected: ${player.id}`);
@@ -164,6 +173,7 @@ io.on('connection', (socket) => {
                 health: user.health,
                 shield: user.shields,
                 currency: user.currency,
+                score: 0,
             };
             socket.emit('initUi', players[player.id]);
             socket.emit('currentPlayers', players);
@@ -198,6 +208,12 @@ io.on('connection', (socket) => {
             cleanup(spawnController);
             io.emit('playerDisconnecting', id);
         }
+    });
+
+    socket.on('playerKilled', (socketId) => {
+        const player = getPlayerBySocketId(socketId);
+        player.score += 50;
+        socket.emit('adjustScore', socketId, player.score);
     });
 
     socket.on('playerMovement', (data) => {
@@ -247,9 +263,11 @@ io.on('connection', (socket) => {
 
     socket.emit('currentEnemies', enemies);
 
-    socket.on('enemyDied', (enemyId, playerId) => {
+    socket.on('enemyDied', (enemyId, socketId) => {
         delete enemies[enemyId];
         io.emit('removeEnemy', enemyId);
-        socket.emit('adjustScore', playerId, 5);
+        const player = getPlayerBySocketId(socketId);
+        player.score += 5;
+        socket.emit('adjustScore', socketId, player.score);
     });
 });
