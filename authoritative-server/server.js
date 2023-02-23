@@ -26,7 +26,7 @@ const checkJwt = jwt({
         jwksRequestsPerMinute: 5,
         jwksUri: `https://www.googleapis.com/oauth2/v3/certs`
     }),
-  
+
     // Validate the audience and the issuer.
     issuer: 'https://accounts.google.com',
     algorithms: ['RS256']
@@ -48,7 +48,7 @@ app.get('/', (req, res) => {
         'response_type': 'code',
         'client_id': process.env.client_id,
         'redirect_uri': req.protocol + "://" + req.get("host")
-        + req.baseUrl + '/oauth',
+            + req.baseUrl + '/oauth',
         'scope': 'profile email'
     }
 
@@ -65,40 +65,40 @@ app.get('/oauth', (req, res) => {
         'client_id': process.env.client_id,
         'client_secret': process.env.client_secret,
         'redirect_uri': req.protocol + "://" + req.get("host")
-        + req.baseUrl + '/oauth',
+            + req.baseUrl + '/oauth',
         'grant_type': 'authorization_code'
     }
 
     axios.post('https://oauth2.googleapis.com/token', body)
-    .then((token) => {
-        axios.get('https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses', {
-            headers:{
-                'Authorization': 'Bearer ' + token.data.access_token
-            }
-        }).then((user) => {
-            const id = user.data.names[0].metadata.source.id;
-            const name = user.data.names[0].unstructuredName;
-            const email = user.data.emailAddresses[0].value;
-            Player.getPlayer(id)
-            .then((player) => {
-                if (player) {
-                    res.setHeader('Set-Cookie', [
-                        `playerID=${player._id}; max-age=3600;`,
-                        `username=${player.username}; max-age=3600;`,
-                        `IDtoken=${token.data.id_token}; max-age=3600;`
-                    ]).redirect('http://localhost:8080/');
-                } else {
-                    Player.addPlayer(id, name, email)
-                    .then(() => {
-                        res.setHeader('Set-Cookie', [
-                            `playerID=${id}; max-age=3600;`,
-                            `IDtoken=${token.data.id_token}; max-age=3600;`
-                        ]).redirect('http://localhost:8080/');
-                    });
+        .then((token) => {
+            axios.get('https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses', {
+                headers: {
+                    'Authorization': 'Bearer ' + token.data.access_token
                 }
+            }).then((user) => {
+                const id = user.data.names[0].metadata.source.id;
+                const name = user.data.names[0].unstructuredName;
+                const email = user.data.emailAddresses[0].value;
+                Player.getPlayer(id)
+                    .then((player) => {
+                        if (player) {
+                            res.setHeader('Set-Cookie', [
+                                `playerID=${player._id}; max-age=3600;`,
+                                `username=${player.username}; max-age=3600;`,
+                                `IDtoken=${token.data.id_token}; max-age=3600;`
+                            ]).redirect('http://localhost:8080/');
+                        } else {
+                            Player.addPlayer(id, name, email)
+                                .then(() => {
+                                    res.setHeader('Set-Cookie', [
+                                        `playerID=${id}; max-age=3600;`,
+                                        `IDtoken=${token.data.id_token}; max-age=3600;`
+                                    ]).redirect('http://localhost:8080/');
+                                });
+                        }
+                    });
             });
         });
-    });
 });
 
 // app.get('/player/:id', checkJwt, (req, res) => {
@@ -113,7 +113,7 @@ app.post('/player/:id', checkJwt, (req, res) => {
             player.name === req.auth.name &&
             player.email === req.auth.email) {
             if (Player.updateName(req.params.id, req.body.username)) {
-                res.json({username: req.body.username});
+                res.json({ username: req.body.username });
             } else {
                 res.status(404).end();
             }

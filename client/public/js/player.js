@@ -7,7 +7,7 @@ export class Player {
 
     changeName(player, username) {
         return fetch(`http://localhost:9000/player/${player.id}`, {
-            method:'POST',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + player.jwt

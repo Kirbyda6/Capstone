@@ -11,18 +11,18 @@ const opts = {
 }
 
 const conn = mongoose.connect(process.env.MONGO_URL, opts)
-.then(() => {console.log('Connected to DB!')})
-.catch(() => {console.log('Could not connect...')})
+    .then(() => { console.log('Connected to DB!') })
+    .catch(() => { console.log('Could not connect...') })
 
 const playerSchema = new Schema({
     _id: Number,
-    name: {type: String, default: ''},
-    email: {type: String, default: ''},
-    username: {type: String, default: ''},
-    health: {type: Number, default: 3},
-    shields: {type: Number, default: 3},
-    speed: {type: Number, default: 3},
-    currency: {type: Number, default: 0},
+    name: { type: String, default: '' },
+    email: { type: String, default: '' },
+    username: { type: String, default: '' },
+    health: { type: Number, default: 3 },
+    shields: { type: Number, default: 3 },
+    speed: { type: Number, default: 3 },
+    currency: { type: Number, default: 0 },
 });
 
 const Player = mongoose.model('Player', playerSchema);
@@ -41,7 +41,7 @@ function getPlayer(id) {
 }
 
 function updateName(id, name) {
-    return Player.findByIdAndUpdate(id, {username: name}, (err, res) => {
+    return Player.findByIdAndUpdate(id, { username: name }, (err, res) => {
         if (res) return true;
         return false;
     })

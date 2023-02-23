@@ -47,42 +47,43 @@ class Main extends Phaser.Scene {
                 '',
                 { font: '32px Courier', fill: '#ffffff', rtl: 'true' }
             );
-            
+
             if (!this.player.username) {
                 const form = this.add.dom(screenCenterX, screenCenterY).createFromCache('username');
                 form.setPerspective(800);
-    
+
                 form.addListener('click');
-    
+
                 form.on('click', (click) => {
                     if (click.target.name === 'submit') {
                         const username = form.getChildByName('username');
                         const confirm = form.getChildByName('confirm');
                         if (username.value && username.value === confirm.value) {
                             this.player.changeName(this.player, username.value)
-                            .then((cookie) => {
-                                this.player.username = cookie.username;
-                                document.cookie = `username=${cookie.username}; max-age=3600; SameSite=Strict`;
-                                text.setText(username.value);
-                                form.removeListener('click');
-                                this.playButton.on('pointerdown', () => {
-                                    this.menuMusic.stop();
-                                    this.scene.stop();
-                                    this.scene.start('GameScene');
+                                .then((cookie) => {
+                                    this.player.username = cookie.username;
+                                    document.cookie = `username=${cookie.username}; max-age=3600; SameSite=Strict`;
+                                    text.setText(username.value);
+                                    form.removeListener('click');
+                                    this.playButton.on('pointerdown', () => {
+                                        this.menuMusic.stop();
+                                        this.scene.stop();
+                                        this.scene.start('GameScene');
+                                    });
+                                    this.tweens.add({ targets: form.rotate3d, x: 1, w: 90, duration: 2000, ease: 'Power3' });
+                                    this.tweens.add({
+                                        targets: form, scaleX: 2, scaleY: 2, y: this.cameras.main.height * 2, duration: 3000, ease: 'Power3',
+                                        onComplete: () => {
+                                            form.setVisible(false);
+                                        }
+                                    });
                                 });
-                                this.tweens.add({ targets: form.rotate3d, x: 1, w: 90, duration: 2000, ease: 'Power3' });
-                                this.tweens.add({ targets: form, scaleX: 2, scaleY: 2, y: this.cameras.main.height * 2, duration: 3000, ease: 'Power3',
-                                    onComplete: () => {
-                                        form.setVisible(false);
-                                    }
-                                });
-                            });
                         } else {
                             alert('Fields must be filled and match');
                         }
                     }
                 });
-    
+
                 this.tweens.add({
                     targets: form,
                     y: 500,
@@ -121,7 +122,7 @@ const config = {
     physics: {
         default: 'arcade',
         arcade: {
-            debug: true,
+            debug: false,
             gravity: { y: 0 }
         }
     },
