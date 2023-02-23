@@ -11,21 +11,23 @@ function addPlayer(self, playerInfo) {
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200);
     self.ship.setCollideWorldBounds(true);
-    self.ship.body.immovable = true;
+    self.ship.setImmovable(true);
 }
 
 function addOtherPlayers(self, playerInfo) {
-    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setScale(0.4);
+    const otherPlayer = self.physics.add.image(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setScale(0.4);
     otherPlayer.socketId = playerInfo.socketId;
     self.otherPlayers.add(otherPlayer);
 }
 
 function addEnemy(self, enemy) {
-    const currEnemy = self.add.sprite(enemy.x, enemy.y, 'alien').setOrigin(0.5, 0.5).setScale(0.3);
+    const currEnemy = self.physics.add.image(enemy.x, enemy.y, 'alien').setOrigin(0.5, 0.5).setScale(0.3);
     currEnemy.enemyId = enemy.enemyId;
     currEnemy.targetX = enemy.target.x;
     currEnemy.targetY = enemy.target.y;
     self.aiEnemies.add(currEnemy);
+    currEnemy.onWorldBounds = true;
+    currEnemy.setCollideWorldBounds(true).setBounce(1);
     return currEnemy;
 }
 
@@ -69,8 +71,7 @@ export class Game extends Phaser.Scene {
         // set camera and background
         const cams = this.cameras.main;
         cams.setBounds(0, 0, 3200, 2400);
-        this.physics.world.bounds.width = 3200;
-        this.physics.world.bounds.height = 2400;
+        this.physics.world.setBounds(0, 0, 3200, 2400);
         let background = this.add.image(0, 0, 'bg').setOrigin(0);
 
         const self = this;
@@ -82,7 +83,10 @@ export class Game extends Phaser.Scene {
         this.socket.emit('initialize', this.player);
 
         // initialize the UI with player starting stats
-        this.ui = this.add.container();
+        this.uiZone = this.add.zone(cams.worldView.x, cams.worldView.y).setSize(300, 300);
+        this.physics.world.enable(this.uiZone);
+        this.uiZone.body.moves = true;
+        this.ui = this.add.group();
         this.socket.on('initUi', player => {
             // placeholder score
             this.score = 0;
@@ -105,6 +109,7 @@ export class Game extends Phaser.Scene {
         });
 
         this.otherPlayers = this.physics.add.group();
+        this.physics.add.overlap(this.otherPlayers, this.uiZone);
 
         this.socket.on('currentPlayers', (players) => {
             Object.keys(players).forEach((id) => {
@@ -121,6 +126,7 @@ export class Game extends Phaser.Scene {
             if (self.otherPlayers.getChildren()) {
                 this.enemyBullets = new Bullets(this, 'enemyBullet');
             }
+            this.physics.add.overlap(this.ship, this.uiZone);
         });
 
         this.socket.on('newPlayer', (playerInfo) => {
@@ -170,6 +176,7 @@ export class Game extends Phaser.Scene {
         });
 
         this.aiEnemies = this.physics.add.group();
+        this.physics.add.overlap(this.aiEnemies, this.uiZone);
 
         this.socket.on('newEnemy', (enemy) => {
             let newEnemy = addEnemy(self, enemy);
@@ -204,12 +211,8 @@ export class Game extends Phaser.Scene {
     update() {
         if (this.ship) {
             // handle ui overlap
-            if (Phaser.Geom.Intersects.RectangleToRectangle(this.ui.getBounds(), this.ship.getBounds())) {
-                this.ui.setAlpha(0.2)
-            }
-            else {
-                this.ui.setAlpha(1);
-            }
+            this.uiZone.setPosition(this.cameras.main.worldView.x, this.cameras.main.worldView.y);
+            this.uiZone.body.touching.none ? this.ui.setAlpha(1) : this.ui.setAlpha(0.2);
 
             // emit player movement
             let x = this.ship.x;
