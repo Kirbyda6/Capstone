@@ -12,6 +12,7 @@ function addPlayer(self, playerInfo) {
     self.ship.setMaxVelocity(200);
     self.ship.setCollideWorldBounds(true);
     self.ship.setImmovable(true);
+    self.ship.setDepth(1);
 }
 
 function addOtherPlayers(self, playerInfo) {
@@ -54,6 +55,8 @@ export class Game extends Phaser.Scene {
         this.load.audio('gameMusic', 'assets/gameMusic.ogg');
         this.load.audio('shootSound', 'assets/shoot.ogg');
         this.load.audio('alienSound', 'assets/alien.ogg');
+        this.load.audio('hit', 'assets/hit.ogg');
+        this.load.audio('explosion', 'assets/explosion.ogg');
     }
 
     create() {
@@ -67,6 +70,8 @@ export class Game extends Phaser.Scene {
         this.gameMusic.play();
         this.shootSound = this.sound.add('shootSound', { volume: 0.5, loop: false });
         this.alienSound = this.sound.add('alienSound', { volume: 0.5, loop: false });
+        this.hit = this.sound.add('hit', { volume: 0.5, loop: false });
+        this.explosion = this.sound.add('explosion', { volume: 0.5, loop: false });
 
         // set camera and background
         const cams = this.cameras.main;
@@ -92,22 +97,28 @@ export class Game extends Phaser.Scene {
             this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
             this.ui.add(this.add.text(50, 10, player.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '32px' }).setName('score').setScrollFactor(0));
 
-            this.ui.add(this.add.image(10, 50, 'healthIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
+            this.ui.add(this.add.image(10, 50, 'shieldIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
+            this.shieldNodes = this.add.group();
             let pos = 50;
-            for (let i = 0; i < player.health; i++) {
-                this.ui.add(this.add.image(pos, 52.5, 'healthNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
-                pos += 15;
-            }
-
-            this.ui.add(this.add.image(10, 90, 'shieldIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
-            pos = 50;
             for (let i = 0; i < player.shield; i++) {
-                this.ui.add(this.add.image(pos, 92.5, 'shieldNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
+                this.shieldNodes.add(this.add.image(pos, 52.5, 'shieldNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
                 pos += 15;
             }
+            this.ui.add(this.shieldNodes);
+
+            this.ui.add(this.add.image(10, 90, 'healthIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
+            this.healthNodes = this.add.group();
+            pos = 50;
+            for (let i = 0; i < player.health; i++) {
+                this.healthNodes.add(this.add.image(pos, 92.5, 'healthNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
+                pos += 15;
+            }
+            this.ui.add(this.healthNodes);
         });
 
-        this.otherPlayers = this.physics.add.group();
+        this.otherPlayers = this.physics.add.group({
+            immovable: true
+        });
         this.physics.add.overlap(this.otherPlayers, this.uiZone);
 
         this.socket.on('currentPlayers', (players) => {
@@ -126,6 +137,10 @@ export class Game extends Phaser.Scene {
                 this.enemyBullets = new Bullets(this, 'enemyBullet');
             }
             this.physics.add.overlap(this.ship, this.uiZone);
+            this.physics.add.collider(this.ship, this.aiEnemies, (ship, enemy) => {
+                this.hit.play();
+                this.socket.emit('damagePlayer', this.socket.id, 'enemy', enemy.enemyId);
+            });
         });
 
         this.socket.on('newPlayer', (playerInfo) => {
@@ -142,6 +157,7 @@ export class Game extends Phaser.Scene {
 
         this.socket.on('playerDisconnecting', (id) => {
             if (id === this.socket.id) {
+                this.explosion.play();
                 this.socket.disconnect();
                 this.ship = undefined;
                 this.gameMusic.stop();
@@ -209,6 +225,28 @@ export class Game extends Phaser.Scene {
             }
         });
 
+        this.socket.on('updateShield', (playerId, shield) => {
+            if (this.socket.id === playerId) {
+                this.shieldNodes.clear(true, true);
+                let pos = 50;
+                for (let i = 0; i < shield; i++) {
+                    this.shieldNodes.add(this.add.image(pos, 52.5, 'shieldNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
+                    pos += 15;
+                }
+            }
+        });
+
+        this.socket.on('updateHealth', (playerId, health) => {
+            if (this.socket.id === playerId) {
+                this.healthNodes.clear(true, true);
+                let pos = 50;
+                for (let i = 0; i < health; i++) {
+                    this.healthNodes.add(this.add.image(pos, 92.5, 'healthNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
+                    pos += 15;
+                }
+            }
+        });
+
         // keybinds
         this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
@@ -221,7 +259,7 @@ export class Game extends Phaser.Scene {
         if (this.ship) {
             // handle ui overlap
             this.uiZone.setPosition(this.cameras.main.worldView.x, this.cameras.main.worldView.y);
-            this.uiZone.body.touching.none ? this.ui.setAlpha(1) : this.ui.setAlpha(0.2);
+            this.uiZone.body.touching.none ? this.ui.setAlpha(1) : this.ui.setAlpha(0.3);
 
             // emit player movement
             let x = this.ship.x;
