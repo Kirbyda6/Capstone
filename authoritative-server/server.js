@@ -162,7 +162,8 @@ io.on('connection', (socket) => {
                 y: Math.floor(Math.random() * 2300) + 50,
                 socketId: socket.id,
                 health: user.health,
-                shield: user.sheilds,
+                shield: user.shields,
+                currency: user.currency,
             };
             socket.emit('initUi', players[player.id]);
             socket.emit('currentPlayers', players);

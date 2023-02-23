@@ -20,8 +20,9 @@ const playerSchema = new Schema({
     email: {type: String, default: ''},
     username: {type: String, default: ''},
     health: {type: Number, default: 3},
-    sheilds: {type: Number, default: 3},
-    speed: {type: Number, default: 3}
+    shields: {type: Number, default: 3},
+    speed: {type: Number, default: 3},
+    currency: {type: Number, default: 0},
 });
 
 const Player = mongoose.model('Player', playerSchema);
