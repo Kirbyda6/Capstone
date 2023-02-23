@@ -91,7 +91,7 @@ export class Game extends Phaser.Scene {
             // placeholder score
             this.score = 0;
             this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
-            this.ui.add(this.add.text(50, 10, this.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '32px' }).setScrollFactor(0));
+            this.ui.add(this.add.text(50, 10, this.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '32px' }).setName('score').setScrollFactor(0));
 
             this.ui.add(this.add.image(10, 50, 'healthIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
             let pos = 50;
@@ -198,6 +198,17 @@ export class Game extends Phaser.Scene {
                     enemy.destroy();
                 }
             });
+        });
+
+        this.socket.on('adjustScore', (playerId, amount) => {
+            if (this.socket.id === playerId) {
+                this.score += amount;
+                this.ui.getChildren().forEach((element) => {
+                    if (element.name === 'score') {
+                        element.text = this.score.toLocaleString('en-US');
+                    }
+                })
+            }
         });
 
         // keybinds

@@ -247,8 +247,9 @@ io.on('connection', (socket) => {
 
     socket.emit('currentEnemies', enemies);
 
-    socket.on('enemyDied', (id) => {
-        delete enemies[id];
-        io.emit('removeEnemy', id);
+    socket.on('enemyDied', (enemyId, playerId) => {
+        delete enemies[enemyId];
+        io.emit('removeEnemy', enemyId);
+        socket.emit('adjustScore', playerId, 5);
     });
 });
