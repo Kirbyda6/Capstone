@@ -26,7 +26,7 @@ const checkJwt = jwt({
         jwksRequestsPerMinute: 5,
         jwksUri: `https://www.googleapis.com/oauth2/v3/certs`
     }),
-  
+
     // Validate the audience and the issuer.
     issuer: 'https://accounts.google.com',
     algorithms: ['RS256']
@@ -48,7 +48,7 @@ app.get('/', (req, res) => {
         'response_type': 'code',
         'client_id': process.env.client_id,
         'redirect_uri': req.protocol + "://" + req.get("host")
-        + req.baseUrl + '/oauth',
+            + req.baseUrl + '/oauth',
         'scope': 'profile email'
     }
 
@@ -65,40 +65,40 @@ app.get('/oauth', (req, res) => {
         'client_id': process.env.client_id,
         'client_secret': process.env.client_secret,
         'redirect_uri': req.protocol + "://" + req.get("host")
-        + req.baseUrl + '/oauth',
+            + req.baseUrl + '/oauth',
         'grant_type': 'authorization_code'
     }
 
     axios.post('https://oauth2.googleapis.com/token', body)
-    .then((token) => {
-        axios.get('https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses', {
-            headers:{
-                'Authorization': 'Bearer ' + token.data.access_token
-            }
-        }).then((user) => {
-            const id = user.data.names[0].metadata.source.id;
-            const name = user.data.names[0].unstructuredName;
-            const email = user.data.emailAddresses[0].value;
-            Player.getPlayer(id)
-            .then((player) => {
-                if (player) {
-                    res.setHeader('Set-Cookie', [
-                        `playerID=${player._id}; max-age=3600;`,
-                        `username=${player.username}; max-age=3600;`,
-                        `IDtoken=${token.data.id_token}; max-age=3600;`
-                    ]).redirect('http://localhost:8080/');
-                } else {
-                    Player.addPlayer(id, name, email)
-                    .then(() => {
-                        res.setHeader('Set-Cookie', [
-                            `playerID=${id}; max-age=3600;`,
-                            `IDtoken=${token.data.id_token}; max-age=3600;`
-                        ]).redirect('http://localhost:8080/');
-                    });
+        .then((token) => {
+            axios.get('https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses', {
+                headers: {
+                    'Authorization': 'Bearer ' + token.data.access_token
                 }
+            }).then((user) => {
+                const id = user.data.names[0].metadata.source.id;
+                const name = user.data.names[0].unstructuredName;
+                const email = user.data.emailAddresses[0].value;
+                Player.getPlayer(id)
+                    .then((player) => {
+                        if (player) {
+                            res.setHeader('Set-Cookie', [
+                                `playerID=${player._id}; max-age=3600;`,
+                                `username=${player.username}; max-age=3600;`,
+                                `IDtoken=${token.data.id_token}; max-age=3600;`
+                            ]).redirect('http://localhost:8080/');
+                        } else {
+                            Player.addPlayer(id, name, email)
+                                .then(() => {
+                                    res.setHeader('Set-Cookie', [
+                                        `playerID=${id}; max-age=3600;`,
+                                        `IDtoken=${token.data.id_token}; max-age=3600;`
+                                    ]).redirect('http://localhost:8080/');
+                                });
+                        }
+                    });
             });
         });
-    });
 });
 
 // app.get('/player/:id', checkJwt, (req, res) => {
@@ -113,7 +113,7 @@ app.post('/player/:id', checkJwt, (req, res) => {
             player.name === req.auth.name &&
             player.email === req.auth.email) {
             if (Player.updateName(req.params.id, req.body.username)) {
-                res.json({username: req.body.username});
+                res.json({ username: req.body.username });
             } else {
                 res.status(404).end();
             }
@@ -151,6 +151,15 @@ function getRandomPlayer() {
     return players[playerIds[randIndex]];
 }
 
+function getPlayerIdBySocketId(socketId) {
+    const playerList = Object.keys(players)
+    for (let i = 0; i < playerList.length; i++) {
+        if (players[playerList[i]].socketId === socketId) {
+            return playerList[i]
+        }
+    }
+}
+
 io.on('connection', (socket) => {
     socket.on('initialize', (player) => {
         console.log(`User connected: ${player.id}`);
@@ -162,7 +171,9 @@ io.on('connection', (socket) => {
                 y: Math.floor(Math.random() * 2300) + 50,
                 socketId: socket.id,
                 health: user.health,
-                shield: user.sheilds,
+                shield: user.shields,
+                currency: user.currency,
+                score: 0,
             };
             socket.emit('initUi', players[player.id]);
             socket.emit('currentPlayers', players);
@@ -171,32 +182,29 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        Object.keys(players).forEach((key) => {
-            if (players[key].socketId === socket.id) {
-                id = key;
-                console.log(`User disconnected: ${key}`);
-                delete players[key];
-                cleanup(spawnController);
-                io.emit('playerDisconnecting', socket.id);
-            }
-        });
+        const playerId = getPlayerIdBySocketId(socket.id);
+        if (playerId) {
+            console.log(`User disconnected: ${playerId}`);
+            delete players[playerId];
+            cleanup(spawnController);
+            io.emit('playerDisconnecting', socket.id);
+        }
     });
 
-    socket.on('playerDied', (id) => {
-        let playerId;
-        
-        Object.keys(players).forEach((key) => {
-            if (players[key].socketId === id) {
-                playerId = key;
-            }
-        });
-
+    socket.on('playerDied', (socketId) => {
+        const playerId = getPlayerIdBySocketId(socketId);
         if (playerId) {
             console.log(`User died: ${playerId}`);
             delete players[playerId];
             cleanup(spawnController);
-            io.emit('playerDisconnecting', id);
+            io.emit('playerDisconnecting', socketId);
         }
+    });
+
+    socket.on('playerKilled', (socketId) => {
+        const playerId = getPlayerIdBySocketId(socketId);
+        players[playerId].score += 50;
+        socket.emit('adjustScore', socketId, players[playerId].score);
     });
 
     socket.on('playerMovement', (data) => {
@@ -246,8 +254,11 @@ io.on('connection', (socket) => {
 
     socket.emit('currentEnemies', enemies);
 
-    socket.on('enemyDied', (id) => {
-        delete enemies[id];
-        io.emit('removeEnemy', id);
+    socket.on('enemyDied', (enemyId, socketId) => {
+        delete enemies[enemyId];
+        io.emit('removeEnemy', enemyId);
+        const playerId = getPlayerIdBySocketId(socketId);
+        players[playerId].score += 5;
+        socket.emit('adjustScore', socketId, players[playerId].score);
     });
 });
