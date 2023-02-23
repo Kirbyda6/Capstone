@@ -220,6 +220,39 @@ io.on('connection', (socket) => {
         io.emit('fired', ship);
     });
 
+    socket.on('damagePlayer', (socketId, source, sourceId) => {
+        const playerId = getPlayerIdBySocketId(socketId);
+        if (playerId) {
+            if (source === 'enemy') {
+                delete enemies[sourceId];
+                io.emit('removeEnemy', sourceId);
+            }
+
+            if (players[playerId].shield) {
+                players[playerId].shield -= 1;
+                io.emit('updateShield', socketId, players[playerId].shield);
+            }
+            else if (players[playerId].health) {
+                players[playerId].health -= 1;
+                io.emit('updateHealth', socketId, players[playerId].health);
+            }
+
+            // player has no health remaining
+            if (!players[playerId].health) {
+                console.log(`User died: ${playerId}`);
+                delete players[playerId];
+                cleanup(spawnController);
+                io.emit('playerDisconnecting', socketId);
+
+                if (source === 'player') {
+                    const id = getPlayerIdBySocketId(sourceId);
+                    players[id].score += 50;
+                    socket.emit('adjustScore', sourceId, players[id].score);
+                }
+            }
+        }
+    });
+
     // enemy spawn controller
     let spawnController = setInterval(() => {
         const generateId = () => {
