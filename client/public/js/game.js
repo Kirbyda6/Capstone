@@ -94,23 +94,23 @@ export class Game extends Phaser.Scene {
         this.ui = this.add.group();
         this.socket.on('initUi', player => {
             // placeholder score
-            this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
-            this.ui.add(this.add.text(50, 10, player.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '32px' }).setName('score').setScrollFactor(0));
+            this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.2).setScrollFactor(0));
+            this.ui.add(this.add.text(60, 10, player.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '38px' }).setName('score').setScrollFactor(0));
 
-            this.ui.add(this.add.image(10, 50, 'shieldIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
+            this.ui.add(this.add.image(10, 50, 'shieldIcon').setOrigin(0).setScale(0.2).setScrollFactor(0));
             this.shieldNodes = this.add.group();
-            let pos = 50;
+            let pos = 60;
             for (let i = 0; i < player.shield; i++) {
-                this.shieldNodes.add(this.add.image(pos, 52.5, 'shieldNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
+                this.shieldNodes.add(this.add.image(pos, 52.5, 'shieldNode').setOrigin(0).setScale(0.18).setScrollFactor(0));
                 pos += 15;
             }
             this.ui.add(this.shieldNodes);
 
-            this.ui.add(this.add.image(10, 90, 'healthIcon').setOrigin(0).setScale(0.4).setScrollFactor(0));
+            this.ui.add(this.add.image(10, 90, 'healthIcon').setOrigin(0).setScale(0.2).setScrollFactor(0));
             this.healthNodes = this.add.group();
-            pos = 50;
+            pos = 60;
             for (let i = 0; i < player.health; i++) {
-                this.healthNodes.add(this.add.image(pos, 92.5, 'healthNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
+                this.healthNodes.add(this.add.image(pos, 92.5, 'healthNode').setOrigin(0).setScale(0.18).setScrollFactor(0));
                 pos += 15;
             }
             this.ui.add(this.healthNodes);
@@ -166,6 +166,7 @@ export class Game extends Phaser.Scene {
             }
             self.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (id === otherPlayer.socketId) {
+                    this.explosion.play();
                     otherPlayer.destroy();
                 }
             });
@@ -228,9 +229,9 @@ export class Game extends Phaser.Scene {
         this.socket.on('updateShield', (playerId, shield) => {
             if (this.socket.id === playerId) {
                 this.shieldNodes.clear(true, true);
-                let pos = 50;
+                let pos = 60;
                 for (let i = 0; i < shield; i++) {
-                    this.shieldNodes.add(this.add.image(pos, 52.5, 'shieldNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
+                    this.shieldNodes.add(this.add.image(pos, 52.5, 'shieldNode').setOrigin(0).setScale(0.18).setScrollFactor(0));
                     pos += 15;
                 }
             }
@@ -239,9 +240,9 @@ export class Game extends Phaser.Scene {
         this.socket.on('updateHealth', (playerId, health) => {
             if (this.socket.id === playerId) {
                 this.healthNodes.clear(true, true);
-                let pos = 50;
+                let pos = 60;
                 for (let i = 0; i < health; i++) {
-                    this.healthNodes.add(this.add.image(pos, 92.5, 'healthNode').setOrigin(0).setScale(0.5).setScrollFactor(0));
+                    this.healthNodes.add(this.add.image(pos, 92.5, 'healthNode').setOrigin(0).setScale(0.18).setScrollFactor(0));
                     pos += 15;
                 }
             }
@@ -259,7 +260,16 @@ export class Game extends Phaser.Scene {
         if (this.ship) {
             // handle ui overlap
             this.uiZone.setPosition(this.cameras.main.worldView.x, this.cameras.main.worldView.y);
-            this.uiZone.body.touching.none ? this.ui.setAlpha(1) : this.ui.setAlpha(0.3);
+            if (this.uiZone.body.touching.none) {
+                this.ui.setAlpha(1);
+                this.shieldNodes.setAlpha(1);
+                this.healthNodes.setAlpha(1);
+            }
+            else {
+                this.ui.setAlpha(0.3);
+                this.shieldNodes.setAlpha(0.3);
+                this.healthNodes.setAlpha(0.3);
+            }
 
             // emit player movement
             let x = this.ship.x;

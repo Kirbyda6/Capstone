@@ -47,4 +47,11 @@ function updateName(id, name) {
     })
 }
 
-module.exports = { addPlayer, getPlayer, updateName }
+function updateCurrency(id, currency, score) {
+    return Player.findByIdAndUpdate(id, { currency: currency + score }, (err, res) => {
+        if (res) return true;
+        return false;
+    })
+}
+
+module.exports = { addPlayer, getPlayer, updateName, updateCurrency }

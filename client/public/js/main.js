@@ -1,5 +1,6 @@
 import { Game } from './game.js';
 import { GameOver } from './gameOver.js';
+import { Shop } from './shop.js';
 import { Player } from './player.js';
 
 export function parseCookie() {
@@ -18,9 +19,14 @@ class Main extends Phaser.Scene {
         super({ key: 'MainScene' });
     }
 
+    init(data) {
+        this.musicPlaying = data.music;
+    }
+
     preload() {
         // UI elements
         this.load.image('playButton', 'assets/playButton.png');
+        this.load.image('upgradeButton', 'assets/upgradeButton.png');
         this.load.image('gameTitle', 'assets/gameTitle.png');
         this.load.image('login', 'assets/loginButton.png');
         this.load.html('username', 'assets/html/username.html');
@@ -31,7 +37,10 @@ class Main extends Phaser.Scene {
     create() {
         this.player;
         this.menuMusic = this.sound.add('menuMusic', { volume: 0.25, loop: true });
-        this.menuMusic.play();
+        if (!this.musicPlaying) {
+            this.menuMusic.play();
+            this.musicPlaying = true;
+        }
 
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
@@ -39,7 +48,8 @@ class Main extends Phaser.Scene {
 
         const playerData = parseCookie();
         if (playerData.playerID) {
-            this.playButton = this.add.image(screenCenterX, screenCenterY, 'playButton').setInteractive({ cursor: 'pointer' });
+            this.playButton = this.add.image(screenCenterX - 150, screenCenterY, 'playButton').setInteractive({ cursor: 'pointer' });
+            this.upgradeButton = this.add.image(screenCenterX + 150, screenCenterY, 'upgradeButton').setInteractive({ cursor: 'pointer' });
             this.player = new Player(playerData.playerID, playerData.username, playerData.IDtoken);
             const text = this.add.text(
                 this.cameras.main.width - 5,
@@ -92,9 +102,13 @@ class Main extends Phaser.Scene {
                 });
             } else {
                 this.playButton.on('pointerdown', () => {
-                    this.menuMusic.stop();
+                    this.game.sound.stopAll();
                     this.scene.stop();
                     this.scene.start('GameScene');
+                });
+                this.upgradeButton.on('pointerdown', () => {
+                    this.scene.stop();
+                    this.scene.start('ShopScene', { username: this.player.username, music: this.musicPlaying });
                 });
                 text.setText(this.player.username);
             }
@@ -127,7 +141,7 @@ const config = {
         }
     },
     dom: { createContainer: true },
-    scene: [Main, Game, GameOver]
+    scene: [Main, Game, GameOver, Shop]
 };
 
 const main = new Phaser.Game(config);

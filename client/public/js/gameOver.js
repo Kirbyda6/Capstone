@@ -23,7 +23,7 @@ export class GameOver extends Phaser.Scene {
         this.mainMenuButton.on('pointerdown', () => {
             this.gameOverMusic.stop();
             this.scene.stop();
-            this.scene.start('MainScene');
+            this.scene.start('MainScene', { music: false });
         });
 
     }
