@@ -9,12 +9,12 @@ const jwksRsa = require('jwks-rsa');
 const Player = require('./models/playerModel');
 
 const app = express();
-app.use(cors({ origin: 'http://localhost:8080' }));
+app.use(cors({ origin: process.env.CLIENT_URL }));
 app.use(bodyParser.json());
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:8080"
+        origin: process.env.CLIENT_URL
     }
 });
 
@@ -86,14 +86,14 @@ app.get('/oauth', (req, res) => {
                                 `playerID=${player._id}; max-age=3600;`,
                                 `username=${player.username}; max-age=3600;`,
                                 `IDtoken=${token.data.id_token}; max-age=3600;`
-                            ]).redirect('http://localhost:8080/');
+                            ]).redirect(process.env.CLIENT_URL);
                         } else {
                             Player.addPlayer(id, name, email)
                                 .then(() => {
                                     res.setHeader('Set-Cookie', [
                                         `playerID=${id}; max-age=3600;`,
                                         `IDtoken=${token.data.id_token}; max-age=3600;`
-                                    ]).redirect('http://localhost:8080/');
+                                    ]).redirect(process.env.CLIENT_URL);
                                 });
                         }
                     });
