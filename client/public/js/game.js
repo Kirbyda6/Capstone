@@ -95,7 +95,7 @@ export class Game extends Phaser.Scene {
         this.socket.on('initUi', player => {
             // placeholder score
             this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.2).setScrollFactor(0));
-            this.ui.add(this.add.text(60, 10, player.score.toLocaleString('en-US'), { fontFamily: 'arial', fontSize: '38px' }).setName('score').setScrollFactor(0));
+            this.ui.add(this.add.text(60, 10, player.score.toLocaleString('en-US'), { fontFamily: 'SpaceFont', fontSize: '38px' }).setName('score').setScrollFactor(0));
 
             this.ui.add(this.add.image(10, 50, 'shieldIcon').setOrigin(0).setScale(0.2).setScrollFactor(0));
             this.shieldNodes = this.add.group();

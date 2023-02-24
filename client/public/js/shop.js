@@ -10,7 +10,9 @@ export class Shop extends Phaser.Scene {
 
     preload() {
         this.load.image('mainMenuButton', 'assets/mainMenuButton.png');
-        this.load.image('upgradeShop', 'assets/upgradeShop.png');
+        this.load.image('healthIcon', 'assets/healthIcon.png');
+        this.load.image('shieldIcon', 'assets/shieldIcon.png');
+        this.load.image('speedIcon', 'assets/speedIcon.png');
     }
 
     create() {
@@ -18,13 +20,24 @@ export class Shop extends Phaser.Scene {
             this.cameras.main.width - 5,
             5,
             '',
-            { font: '32px Courier', fill: '#ffffff', rtl: 'true' }
+            { fontFamily: 'SpaceFont', fontSize: '32px', rtl: 'true' }
         );
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
-        this.add.image(screenCenterX, screenCenterY - 300, 'upgradeShop').setOrigin(0.5);
+        this.add.text(screenCenterX, screenCenterY - 300, 'Upgrade Shop', { fontFamily: 'SpaceFont', fontSize: '56px' }).setOrigin(0.5);
 
-        this.mainMenuButton = this.add.image(screenCenterX, screenCenterY + 300, 'mainMenuButton').setInteractive({ cursor: 'pointer' });
+        // this.add.image(screenCenterX, screenCenterY - 300, 'upgradeShop').setOrigin(0.5);
+
+        this.add.image(screenCenterX - 300, screenCenterY - 150, 'healthIcon').setOrigin(0.5).setScale(.5);
+        this.add.text(screenCenterX - 160, screenCenterY - 150, ' Health', { fontFamily: 'SpaceFont', fontSize: '32px' }).setOrigin(0.5);
+
+        this.add.image(screenCenterX - 300, screenCenterY, 'shieldIcon').setOrigin(0.5).setScale(.5);
+        this.add.text(screenCenterX - 160, screenCenterY, 'Shield', { fontFamily: 'SpaceFont', fontSize: '32px' }).setOrigin(0.5);
+
+        this.add.image(screenCenterX - 300, screenCenterY + 150, 'speedIcon').setOrigin(0.5).setScale(.5);
+        this.add.text(screenCenterX - 160, screenCenterY + 150, 'Speed', { fontFamily: 'SpaceFont', fontSize: '32px' }).setOrigin(0.5);
+
+        this.mainMenuButton = this.add.image(screenCenterX, screenCenterY + 300, 'mainMenuButton').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
         this.mainMenuButton.on('pointerdown', () => {
             this.scene.stop();
             this.scene.start('MainScene', { music: this.musicPlaying });

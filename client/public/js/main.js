@@ -27,7 +27,6 @@ class Main extends Phaser.Scene {
         // UI elements
         this.load.image('playButton', 'assets/playButton.png');
         this.load.image('upgradeButton', 'assets/upgradeButton.png');
-        this.load.image('gameTitle', 'assets/gameTitle.png');
         this.load.image('login', 'assets/loginButton.png');
         this.load.html('username', 'assets/html/username.html');
         // audio
@@ -44,18 +43,18 @@ class Main extends Phaser.Scene {
 
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
-        this.add.image(screenCenterX, screenCenterY - 200, 'gameTitle').setOrigin(0.5);
+        this.add.text(screenCenterX, screenCenterY - 200, ['Galactic', 'Gauntlet'], { fontFamily: 'SpaceFont', fontSize: '82px', align: 'center' }).setOrigin(0.5);
 
         const playerData = parseCookie();
         if (playerData.playerID) {
-            this.playButton = this.add.image(screenCenterX - 150, screenCenterY, 'playButton').setInteractive({ cursor: 'pointer' });
-            this.upgradeButton = this.add.image(screenCenterX + 150, screenCenterY, 'upgradeButton').setInteractive({ cursor: 'pointer' });
+            this.playButton = this.add.image(screenCenterX - 150, screenCenterY, 'playButton').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
+            this.upgradeButton = this.add.image(screenCenterX + 150, screenCenterY, 'upgradeButton').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
             this.player = new Player(playerData.playerID, playerData.username, playerData.IDtoken);
             const text = this.add.text(
                 this.cameras.main.width - 5,
                 5,
                 '',
-                { font: '32px Courier', fill: '#ffffff', rtl: 'true' }
+                { fontFamily: 'SpaceFont', fontSize: '32px', rtl: 'true' }
             );
 
             if (!this.player.username) {
@@ -113,7 +112,7 @@ class Main extends Phaser.Scene {
                 text.setText(this.player.username);
             }
         } else {
-            this.loginButton = this.add.image(screenCenterX, screenCenterY, 'login').setInteractive({ cursor: 'pointer' });
+            this.loginButton = this.add.image(screenCenterX, screenCenterY, 'login').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
             this.loginButton.on('pointerdown', () => {
                 const url = new URL('http://localhost:9000/');
                 window.open(url, '_self');
