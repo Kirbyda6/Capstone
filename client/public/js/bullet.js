@@ -5,6 +5,7 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
         if (key === 'playerBullet') {
             this.scene.physics.add.collider(this.scene.otherPlayers, this, (bullet, otherPlayer) => {
                 this.scene.socket.emit('damagePlayer', otherPlayer.socketId, 'player', this.scene.socket.id);
+                this.scene.hit.play();
                 bullet.destroy();
             });
             this.scene.physics.add.collider(this.scene.aiEnemies, this, (bullet, enemy) => {
@@ -15,9 +16,11 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
             });
         } else if (key === 'enemyBullet') {
             this.scene.physics.add.collider(this.scene.ship, this, (ship, bullet) => {
+                this.scene.hit.play();
                 bullet.destroy();
             });
             this.scene.physics.add.collider(this.scene.aiEnemies, this, (bullet, enemy) => {
+                this.scene.alienSound.play();
                 enemy.destroy();
                 bullet.destroy();
             });
