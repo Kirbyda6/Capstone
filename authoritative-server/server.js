@@ -184,27 +184,12 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         const playerId = getPlayerIdBySocketId(socket.id);
         if (playerId) {
+            Player.updateCurrency(playerId, players[playerId].currency, players[playerId].score);
             console.log(`User disconnected: ${playerId}`);
             delete players[playerId];
             cleanup(spawnController);
             io.emit('playerDisconnecting', socket.id);
         }
-    });
-
-    socket.on('playerDied', (socketId) => {
-        const playerId = getPlayerIdBySocketId(socketId);
-        if (playerId) {
-            console.log(`User died: ${playerId}`);
-            delete players[playerId];
-            cleanup(spawnController);
-            io.emit('playerDisconnecting', socketId);
-        }
-    });
-
-    socket.on('playerKilled', (socketId) => {
-        const playerId = getPlayerIdBySocketId(socketId);
-        players[playerId].score += 50;
-        socket.emit('adjustScore', socketId, players[playerId].score);
     });
 
     socket.on('playerMovement', (data) => {
@@ -239,16 +224,17 @@ io.on('connection', (socket) => {
 
             // player has no health remaining
             if (!players[playerId].health) {
-                console.log(`User died: ${playerId}`);
-                delete players[playerId];
-                cleanup(spawnController);
-                io.emit('playerDisconnecting', socketId);
-
                 if (source === 'player') {
                     const id = getPlayerIdBySocketId(sourceId);
                     players[id].score += 50;
                     socket.emit('adjustScore', sourceId, players[id].score);
                 }
+
+                Player.updateCurrency(playerId, players[playerId].currency, players[playerId].score);
+                console.log(`User died: ${playerId}`);
+                delete players[playerId];
+                cleanup(spawnController);
+                io.emit('playerDisconnecting', socketId);
             }
         }
     });
