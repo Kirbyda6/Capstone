@@ -25,7 +25,7 @@ class Main extends Phaser.Scene {
         this.load.image('login', 'assets/loginButton.png');
         this.load.html('username', 'assets/html/username.html');
         // audio
-        this.load.audio('menuMusic', 'assets/menuMusic.ogg');
+        this.load.audio('menuMusic', 'assets/audio/menuMusic.ogg');
     }
 
     create() {

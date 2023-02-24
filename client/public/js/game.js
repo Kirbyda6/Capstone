@@ -52,11 +52,11 @@ export class Game extends Phaser.Scene {
         this.load.image('enemyBullet', 'assets/purple_ball.png');
         this.load.image('alien', 'assets/alien.png');
         // audio
-        this.load.audio('gameMusic', 'assets/gameMusic.ogg');
-        this.load.audio('shootSound', 'assets/shoot.ogg');
-        this.load.audio('alienSound', 'assets/alien.ogg');
-        this.load.audio('hit', 'assets/hit.ogg');
-        this.load.audio('explosion', 'assets/explosion.ogg');
+        this.load.audio('gameMusic', 'assets/audio/gameMusic.ogg');
+        this.load.audio('shootSound', 'assets/audio/shoot.ogg');
+        this.load.audio('alienSound', 'assets/audio/alien.ogg');
+        this.load.audio('hit', 'assets/audio/hit.ogg');
+        this.load.audio('explosion', 'assets/audio/explosion.ogg');
     }
 
     create() {
