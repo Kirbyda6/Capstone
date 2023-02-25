@@ -161,11 +161,12 @@ function getPlayerIdBySocketId(socketId) {
 }
 
 io.on('connection', (socket) => {
-    socket.on('initialize', (player) => {
+    socket.on('initialize', (player, shipSkin) => {
         console.log(`User connected: ${player.id}`);
 
         Player.getPlayer(player.id).then((user) => {
             players[player.id] = {
+                shipSkin: shipSkin,
                 rotation: Math.floor(Math.random() * 360),
                 x: Math.floor(Math.random() * 3100) + 50,
                 y: Math.floor(Math.random() * 2300) + 50,

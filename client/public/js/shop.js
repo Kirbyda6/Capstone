@@ -6,6 +6,7 @@ export class Shop extends Phaser.Scene {
     init(data) {
         this.username = data.username;
         this.musicPlaying = data.music;
+        this.currShipSelection = data.currShipSelection;
     }
 
     preload() {
@@ -40,7 +41,7 @@ export class Shop extends Phaser.Scene {
         this.mainMenuButton = this.add.image(screenCenterX, screenCenterY + 300, 'mainMenuButton').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
         this.mainMenuButton.on('pointerdown', () => {
             this.scene.stop();
-            this.scene.start('MainScene', { music: this.musicPlaying });
+            this.scene.start('MainScene', { music: this.musicPlaying, currShipSelection: this.currShipSelection });
         });
         text.setText(this.username);
     }

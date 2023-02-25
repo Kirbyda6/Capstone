@@ -21,6 +21,7 @@ class Main extends Phaser.Scene {
 
     init(data) {
         this.musicPlaying = data.music;
+        data.currShipSelection === undefined ? this.currShipSelection = 0 : this.currShipSelection = data.currShipSelection;
     }
 
     preload() {
@@ -28,6 +29,21 @@ class Main extends Phaser.Scene {
         this.load.image('playButton', 'assets/playButton.png');
         this.load.image('upgradeButton', 'assets/upgradeButton.png');
         this.load.image('login', 'assets/loginButton.png');
+        this.load.image('prevShip', 'assets/arrowLeft.png');
+        this.load.image('nextShip', 'assets/arrowRight.png');
+
+        // ship skins
+        this.load.image('ship0', 'assets/ships/ship0.png');
+        this.load.image('ship1', 'assets/ships/ship1.png');
+        this.load.image('ship2', 'assets/ships/ship2.png');
+        this.load.image('ship3', 'assets/ships/ship3.png');
+        this.load.image('ship4', 'assets/ships/ship4.png');
+        this.load.image('ship5', 'assets/ships/ship5.png');
+        this.load.image('ship6', 'assets/ships/ship6.png');
+        this.load.image('ship7', 'assets/ships/ship7.png');
+        this.load.image('ship8', 'assets/ships/ship8.png');
+        this.load.image('ship9', 'assets/ships/ship9.png');
+
         this.load.html('username', 'assets/html/username.html');
         // audio
         this.load.audio('menuMusic', 'assets/audio/menuMusic.ogg');
@@ -43,12 +59,28 @@ class Main extends Phaser.Scene {
 
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
-        this.add.text(screenCenterX, screenCenterY - 200, ['Galactic', 'Gauntlet'], { fontFamily: 'SpaceFont', fontSize: '82px', align: 'center' }).setOrigin(0.5);
+        this.add.text(screenCenterX, screenCenterY - 250, ['Galactic', 'Gauntlet'], { fontFamily: 'SpaceFont', fontSize: '82px', align: 'center' }).setOrigin(0.5);
 
         const playerData = parseCookie();
         if (playerData.playerID) {
-            this.playButton = this.add.image(screenCenterX - 150, screenCenterY, 'playButton').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
-            this.upgradeButton = this.add.image(screenCenterX + 150, screenCenterY, 'upgradeButton').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
+            this.shipSkins = this.add.container();
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship0').setName('ship0').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship1').setName('ship1').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship2').setName('ship2').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship3').setName('ship3').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship4').setName('ship4').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship5').setName('ship5').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship6').setName('ship6').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship7').setName('ship7').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship8').setName('ship8').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.add(this.add.image(screenCenterX, screenCenterY, 'ship9').setName('ship9').setOrigin(0.5).setScale(1.5).setVisible(false));
+            this.shipSkins.getByName('ship' + this.currShipSelection).setVisible(true);
+
+            this.prevShip = this.add.image(screenCenterX - 150, screenCenterY, 'prevShip').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
+            this.nextShip = this.add.image(screenCenterX + 150, screenCenterY, 'nextShip').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
+
+            this.playButton = this.add.image(screenCenterX - 200, screenCenterY + 200, 'playButton').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
+            this.upgradeButton = this.add.image(screenCenterX + 200, screenCenterY + 200, 'upgradeButton').setInteractive({ cursor: 'pointer' }).setOrigin(0.5);
             this.player = new Player(playerData.playerID, playerData.username, playerData.IDtoken);
             const text = this.add.text(
                 this.cameras.main.width - 5,
@@ -74,10 +106,32 @@ class Main extends Phaser.Scene {
                                     document.cookie = `username=${cookie.username}; max-age=3600; SameSite=Strict`;
                                     text.setText(username.value);
                                     form.removeListener('click');
+                                    this.nextShip.on('pointerdown', () => {
+                                        this.shipSkins.getByName('ship' + this.currShipSelection).setVisible(false);
+                                        if (this.currShipSelection < 9) {
+                                            this.currShipSelection += 1;
+                                        } else {
+                                            this.currShipSelection = 0;
+                                        }
+                                        this.shipSkins.getByName('ship' + this.currShipSelection).setVisible(true);
+                                    });
+                                    this.prevShip.on('pointerdown', () => {
+                                        this.shipSkins.getByName('ship' + this.currShipSelection).setVisible(false);
+                                        if (this.currShipSelection > 0) {
+                                            this.currShipSelection -= 1;
+                                        } else {
+                                            this.currShipSelection = 9;
+                                        }
+                                        this.shipSkins.getByName('ship' + this.currShipSelection).setVisible(true);
+                                    });
                                     this.playButton.on('pointerdown', () => {
-                                        this.menuMusic.stop();
+                                        this.game.sound.stopAll();
                                         this.scene.stop();
-                                        this.scene.start('GameScene');
+                                        this.scene.start('GameScene', { shipSkin: this.currShipSelection });
+                                    });
+                                    this.upgradeButton.on('pointerdown', () => {
+                                        this.scene.stop();
+                                        this.scene.start('ShopScene', { username: this.player.username, music: this.musicPlaying, currShipSelection: this.currShipSelection });
                                     });
                                     this.tweens.add({ targets: form.rotate3d, x: 1, w: 90, duration: 2000, ease: 'Power3' });
                                     this.tweens.add({
@@ -100,14 +154,32 @@ class Main extends Phaser.Scene {
                     ease: 'Power3'
                 });
             } else {
+                this.nextShip.on('pointerdown', () => {
+                    this.shipSkins.getByName('ship' + this.currShipSelection).setVisible(false);
+                    if (this.currShipSelection < 9) {
+                        this.currShipSelection += 1;
+                    } else {
+                        this.currShipSelection = 0;
+                    }
+                    this.shipSkins.getByName('ship' + this.currShipSelection).setVisible(true);
+                });
+                this.prevShip.on('pointerdown', () => {
+                    this.shipSkins.getByName('ship' + this.currShipSelection).setVisible(false);
+                    if (this.currShipSelection > 0) {
+                        this.currShipSelection -= 1;
+                    } else {
+                        this.currShipSelection = 9;
+                    }
+                    this.shipSkins.getByName('ship' + this.currShipSelection).setVisible(true);
+                });
                 this.playButton.on('pointerdown', () => {
                     this.game.sound.stopAll();
                     this.scene.stop();
-                    this.scene.start('GameScene');
+                    this.scene.start('GameScene', { shipSkin: this.currShipSelection });
                 });
                 this.upgradeButton.on('pointerdown', () => {
                     this.scene.stop();
-                    this.scene.start('ShopScene', { username: this.player.username, music: this.musicPlaying });
+                    this.scene.start('ShopScene', { username: this.player.username, music: this.musicPlaying, currShipSelection: this.currShipSelection });
                 });
                 text.setText(this.player.username);
             }
