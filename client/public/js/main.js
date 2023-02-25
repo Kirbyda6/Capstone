@@ -25,13 +25,13 @@ class Main extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image('bg', 'assets/bg.png');
         // UI elements
         this.load.image('playButton', 'assets/playButton.png');
         this.load.image('upgradeButton', 'assets/upgradeButton.png');
         this.load.image('login', 'assets/loginButton.png');
         this.load.image('prevShip', 'assets/arrowLeft.png');
         this.load.image('nextShip', 'assets/arrowRight.png');
-
         // ship skins
         this.load.image('ship0', 'assets/ships/ship0.png');
         this.load.image('ship1', 'assets/ships/ship1.png');
@@ -43,10 +43,10 @@ class Main extends Phaser.Scene {
         this.load.image('ship7', 'assets/ships/ship7.png');
         this.load.image('ship8', 'assets/ships/ship8.png');
         this.load.image('ship9', 'assets/ships/ship9.png');
-
-        this.load.html('username', 'assets/html/username.html');
         // audio
         this.load.audio('menuMusic', 'assets/audio/menuMusic.ogg');
+        //html
+        this.load.html('username', 'assets/html/username.html');
     }
 
     create() {
@@ -59,6 +59,8 @@ class Main extends Phaser.Scene {
 
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
+        this.bg = this.add.tileSprite(0, 0, this.cameras.main.width, this.cameras.main.height, 'bg').setOrigin(0);
+
         this.add.text(screenCenterX, screenCenterY - 250, ['Galactic', 'Gauntlet'], { fontFamily: 'SpaceFont', fontSize: '82px', align: 'center' }).setOrigin(0.5);
 
         const playerData = parseCookie();

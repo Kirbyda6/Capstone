@@ -64,6 +64,7 @@ export class Game extends Phaser.Scene {
         this.load.image('playerBullet', 'assets/bullet.png');
         this.load.image('enemyBullet', 'assets/bullet.png');
         this.load.image('alien', 'assets/alien.png');
+        this.load.image('bg', 'assets/bg.png');
         // audio
         this.load.audio('gameMusic', 'assets/audio/gameMusic.ogg');
         this.load.audio('shootSound', 'assets/audio/shoot.ogg');
@@ -90,7 +91,7 @@ export class Game extends Phaser.Scene {
         const cams = this.cameras.main;
         cams.setBounds(0, 0, 3200, 2400);
         this.physics.world.setBounds(0, 0, 3200, 2400);
-        let background = this.add.image(0, 0, 'bg').setOrigin(0);
+        this.bg = this.add.tileSprite(0, 0, 3200, 2400, 'bg').setOrigin(0);
 
         const self = this;
         this.socket = io('http://localhost:9000');
@@ -106,7 +107,6 @@ export class Game extends Phaser.Scene {
         this.uiZone.body.moves = true;
         this.ui = this.add.group();
         this.socket.on('initUi', player => {
-            // placeholder score
             this.ui.add(this.add.image(10, 10, 'scoreIcon').setOrigin(0).setScale(0.2).setScrollFactor(0));
             this.ui.add(this.add.text(60, 10, player.score.toLocaleString('en-US'), { fontFamily: 'SpaceFont', fontSize: '38px' }).setName('score').setScrollFactor(0));
 

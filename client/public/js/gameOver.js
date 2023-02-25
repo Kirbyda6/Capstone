@@ -6,6 +6,7 @@ export class GameOver extends Phaser.Scene {
     preload() {
         this.load.image('mainMenuButton', 'assets/mainMenuButton.png');
         this.load.audio('gameOverMusic', 'assets/audio/gameOver.ogg');
+        this.load.image('bg', 'assets/bg.png');
     }
 
     create() {
@@ -14,6 +15,8 @@ export class GameOver extends Phaser.Scene {
 
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
+        this.bg = this.add.tileSprite(0, 0, this.cameras.main.width, this.cameras.main.height, 'bg').setOrigin(0);
+
         this.add.text(screenCenterX, screenCenterY - 200, 'Game Over', { fontFamily: 'SpaceFont', fontSize: '82px' }).setOrigin(0.5);
         this.add.text(screenCenterX, screenCenterY - 100, 'You were eliminated!', { fontFamily: 'SpaceFont', fontSize: '28px' }).setOrigin(0.5);
 
@@ -23,7 +26,6 @@ export class GameOver extends Phaser.Scene {
             this.scene.stop();
             this.scene.start('MainScene', { music: false });
         });
-
     }
 
     update() {
