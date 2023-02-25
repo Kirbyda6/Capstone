@@ -101,11 +101,11 @@ app.get('/oauth', (req, res) => {
         });
 });
 
-// app.get('/player/:id', checkJwt, (req, res) => {
-//     Player.getPlayer(req.params.id).then((player) => {
-//         res.json(player);
-//     })
-// });
+app.get('/player/:id', checkJwt, (req, res) => {
+    Player.getPlayer(req.params.id).then((player) => {
+        res.json(player);
+    })
+});
 
 app.post('/player/:id', checkJwt, (req, res) => {
     Player.getPlayer(req.params.id).then((player) => {

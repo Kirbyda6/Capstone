@@ -133,7 +133,12 @@ class Main extends Phaser.Scene {
                                     });
                                     this.upgradeButton.on('pointerdown', () => {
                                         this.scene.stop();
-                                        this.scene.start('ShopScene', { username: this.player.username, music: this.musicPlaying, currShipSelection: this.currShipSelection });
+                                        this.scene.start('ShopScene', {
+                                            username: this.player.username,
+                                            music: this.musicPlaying,
+                                            currShipSelection: this.currShipSelection,
+                                            player: this.player,
+                                        });
                                     });
                                     this.tweens.add({ targets: form.rotate3d, x: 1, w: 90, duration: 2000, ease: 'Power3' });
                                     this.tweens.add({
@@ -181,7 +186,12 @@ class Main extends Phaser.Scene {
                 });
                 this.upgradeButton.on('pointerdown', () => {
                     this.scene.stop();
-                    this.scene.start('ShopScene', { username: this.player.username, music: this.musicPlaying, currShipSelection: this.currShipSelection });
+                    this.scene.start('ShopScene', {
+                        username: this.player.username,
+                        music: this.musicPlaying,
+                        currShipSelection: this.currShipSelection,
+                        player: this.player,
+                    });
                 });
                 text.setText(this.player.username);
             }

@@ -20,15 +20,15 @@ export class Player {
         })
     }
 
-    // getPlayer(player) {
-    //     fetch(`http://localhost:9000/player/${player.id}`, {
-    //         method:'GET',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'Authorization': 'Bearer ' + player.jwt
-    //         }
-    //     }).then((response) => {
-    //         return response.json()
-    //     })
-    // }
+    getPlayer(player) {
+        return fetch(`http://localhost:9000/player/${player.id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + player.jwt
+            }
+        }).then((response) => {
+            return response.json()
+        })
+    }
 }
