@@ -4,8 +4,8 @@ import { parseCookie } from './main.js';
 import { Player } from './player.js';
 import { GameOver } from './gameOver.js';
 
-function addPlayer(self, playerInfo) {
-    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setScale(0.4);
+function addPlayer(self, playerInfo, shipSkin) {
+    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, shipSkin).setOrigin(0.5, 0.5).setScale(1);
     self.ship.setRotation(playerInfo.rotation);
     self.ship.setDrag(100);
     self.ship.setAngularDrag(100);
@@ -16,7 +16,7 @@ function addPlayer(self, playerInfo) {
 }
 
 function addOtherPlayers(self, playerInfo) {
-    const otherPlayer = self.physics.add.image(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setScale(0.4);
+    const otherPlayer = self.physics.add.image(playerInfo.x, playerInfo.y, playerInfo.shipSkin).setOrigin(0.5, 0.5).setScale(1).setDepth(1);
     otherPlayer.socketId = playerInfo.socketId;
     self.otherPlayers.add(otherPlayer);
 }
@@ -37,7 +37,22 @@ export class Game extends Phaser.Scene {
         super({ key: 'GameScene' });
     }
 
+    init(data) {
+        this.shipSkin = 'ship' + data.shipSkin;
+    }
+
     preload() {
+        // ship skins
+        this.load.image('ship0', 'assets/ships/ship0.png');
+        this.load.image('ship1', 'assets/ships/ship1.png');
+        this.load.image('ship2', 'assets/ships/ship2.png');
+        this.load.image('ship3', 'assets/ships/ship3.png');
+        this.load.image('ship4', 'assets/ships/ship4.png');
+        this.load.image('ship5', 'assets/ships/ship5.png');
+        this.load.image('ship6', 'assets/ships/ship6.png');
+        this.load.image('ship7', 'assets/ships/ship7.png');
+        this.load.image('ship8', 'assets/ships/ship8.png');
+        this.load.image('ship9', 'assets/ships/ship9.png');
         // UI elements
         this.load.image('bg', 'assets/bg.jpg');
         this.load.image('scoreIcon', 'assets/scoreIcon.png');
@@ -46,10 +61,8 @@ export class Game extends Phaser.Scene {
         this.load.image('healthNode', 'assets/healthNode.png');
         this.load.image('shieldNode', 'assets/shieldNode.png');
         // game elements
-        this.load.image('ship', 'assets/spaceShips_001.png');
-        this.load.image('otherPlayer', 'assets/enemyBlack5.png');
-        this.load.image('playerBullet', 'assets/purple_ball.png');
-        this.load.image('enemyBullet', 'assets/purple_ball.png');
+        this.load.image('playerBullet', 'assets/bullet.png');
+        this.load.image('enemyBullet', 'assets/bullet.png');
         this.load.image('alien', 'assets/alien.png');
         // audio
         this.load.audio('gameMusic', 'assets/audio/gameMusic.ogg');
@@ -85,7 +98,7 @@ export class Game extends Phaser.Scene {
         this.player = new Player(cookies.playerID, cookies.username, cookies.IDtoken);
 
         // initialize the player's upgrades with the server
-        this.socket.emit('initialize', this.player);
+        this.socket.emit('initialize', this.player, this.shipSkin);
 
         // initialize the UI with player starting stats
         this.uiZone = this.add.zone(cams.worldView.x, cams.worldView.y).setSize(300, 300);
@@ -124,7 +137,7 @@ export class Game extends Phaser.Scene {
         this.socket.on('currentPlayers', (players) => {
             Object.keys(players).forEach((id) => {
                 if (players[id].socketId === self.socket.id) {
-                    addPlayer(self, players[id]);
+                    addPlayer(self, players[id], this.shipSkin);
                     cams.startFollow(self.ship);
                 } else {
                     addOtherPlayers(self, players[id]);
