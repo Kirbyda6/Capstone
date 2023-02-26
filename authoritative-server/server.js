@@ -194,7 +194,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('playerMovement', (data) => {
-        if (data) {
+        if (players[data.id]) {
             players[data.id].x = data.x;
             players[data.id].y = data.y;
             players[data.id].rotation = data.rotation;
