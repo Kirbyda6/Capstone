@@ -194,11 +194,13 @@ io.on('connection', (socket) => {
     });
 
     socket.on('playerMovement', (data) => {
-        players[data.id].x = data.x;
-        players[data.id].y = data.y;
-        players[data.id].rotation = data.rotation;
-        // emit a message to all players about the player that moved
-        socket.broadcast.emit('playerMoved', players[data.id]);
+        if (data) {
+            players[data.id].x = data.x;
+            players[data.id].y = data.y;
+            players[data.id].rotation = data.rotation;
+            // emit a message to all players about the player that moved
+            socket.broadcast.emit('playerMoved', players[data.id]);
+        }
     });
 
     socket.on('fire', (ship) => {
