@@ -107,6 +107,48 @@ app.get('/player/:id', checkJwt, (req, res) => {
     })
 });
 
+app.post('/player/:id/health', checkJwt, (req, res) => {
+    Player.getPlayer(req.params.id).then((player) => {
+        const upgradeCost = player.health * 25;
+        if (player.currency >= upgradeCost) {
+            if (Player.updateCurrency(req.params.id, player.currency, -upgradeCost) &&
+                Player.updateHealth(req.params.id, player.health + 1)) {
+                res.json({ currency: player.currency - upgradeCost, health: player.health + 1 });
+            } else {
+                res.status(404).end();
+            }
+        }
+    })
+});
+
+app.post('/player/:id/shields', checkJwt, (req, res) => {
+    Player.getPlayer(req.params.id).then((player) => {
+        const upgradeCost = player.health * 25;
+        if (player.currency >= upgradeCost) {
+            if (Player.updateCurrency(req.params.id, player.currency, -upgradeCost) &&
+                Player.updateShields(req.params.id, player.shields + 1)) {
+                res.json({ currency: player.currency - upgradeCost, shields: player.shields + 1 });
+            } else {
+                res.status(404).end();
+            }
+        }
+    })
+});
+
+app.post('/player/:id/speed', checkJwt, (req, res) => {
+    Player.getPlayer(req.params.id).then((player) => {
+        const upgradeCost = player.speed * 25;
+        if (player.currency >= upgradeCost) {
+            if (Player.updateCurrency(req.params.id, player.currency, -upgradeCost) &&
+                Player.updateSpeed(req.params.id, player.speed + 1)) {
+                res.json({ currency: player.currency - upgradeCost, speed: player.speed + 1 });
+            } else {
+                res.status(404).end();
+            }
+        }
+    })
+});
+
 app.post('/player/:id', checkJwt, (req, res) => {
     Player.getPlayer(req.params.id).then((player) => {
         if (player &&

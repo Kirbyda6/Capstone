@@ -54,4 +54,25 @@ function updateCurrency(id, currency, score) {
     })
 }
 
-module.exports = { addPlayer, getPlayer, updateName, updateCurrency }
+function updateHealth(id, health) {
+    return Player.findByIdAndUpdate(id, { health: health }, (err, res) => {
+        if (res) return true;
+        return false;
+    });
+}
+
+function updateShields(id, shields) {
+    return Player.findByIdAndUpdate(id, { shields: shields }, (err, res) => {
+        if (res) return true;
+        return false;
+    });
+}
+
+function updateSpeed(id, speed) {
+    return Player.findByIdAndUpdate(id, { speed: speed }, (err, res) => {
+        if (res) return true;
+        return false;
+    });
+}
+
+module.exports = { addPlayer, getPlayer, updateName, updateCurrency, updateHealth, updateShields, updateSpeed }
