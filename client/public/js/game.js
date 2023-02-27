@@ -5,11 +5,12 @@ import { Player } from './player.js';
 import { GameOver } from './gameOver.js';
 
 function addPlayer(self, playerInfo, shipSkin) {
+    const maxVelocity = (playerInfo.speed * 10) + 100;
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, shipSkin).setOrigin(0.5, 0.5).setScale(1);
     self.ship.setRotation(playerInfo.rotation);
     self.ship.setDrag(100);
     self.ship.setAngularDrag(100);
-    self.ship.setMaxVelocity(200);
+    self.ship.setMaxVelocity(maxVelocity);
     self.ship.setCollideWorldBounds(true);
     self.ship.setImmovable(true);
     self.ship.setDepth(1);
@@ -138,6 +139,7 @@ export class Game extends Phaser.Scene {
             Object.keys(players).forEach((id) => {
                 if (players[id].socketId === self.socket.id) {
                     addPlayer(self, players[id], this.shipSkin);
+                    this.ship.speed = players[id].speed;
                     cams.startFollow(self.ship);
                 } else {
                     addOtherPlayers(self, players[id]);
@@ -318,7 +320,7 @@ export class Game extends Phaser.Scene {
             }
 
             if (this.cursors.up.isDown || this.keyW.isDown) {
-                this.physics.velocityFromRotation(this.ship.rotation + 1.5, 100, this.ship.body.acceleration);
+                this.physics.velocityFromRotation(this.ship.rotation + 1.5, (this.ship.speed * 10) + 100, this.ship.body.acceleration);
             } else {
                 this.ship.setAcceleration(0);
             }

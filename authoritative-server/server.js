@@ -215,6 +215,7 @@ io.on('connection', (socket) => {
                 socketId: socket.id,
                 health: user.health,
                 shield: user.shields,
+                speed: user.speed,
                 currency: user.currency,
                 score: 0,
             };
