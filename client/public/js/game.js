@@ -103,7 +103,7 @@ export class Game extends Phaser.Scene {
         this.socket.emit('initialize', this.player, this.shipSkin);
 
         // initialize the UI with player starting stats
-        this.uiZone = this.add.zone(cams.worldView.x, cams.worldView.y).setSize(300, 300);
+        this.uiZone = this.add.zone(cams.worldView.x, cams.worldView.y).setSize(450, 300);
         this.physics.world.enable(this.uiZone);
         this.uiZone.body.moves = true;
         this.ui = this.add.group();
